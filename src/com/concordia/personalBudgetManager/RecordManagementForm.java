@@ -9,6 +9,8 @@ import javax.swing.JButton;
 import java.awt.Container;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import org.eclipse.wb.swing.FocusTraversalOnArray;
 import java.awt.Component;
 
@@ -19,14 +21,29 @@ import javax.swing.JComboBox;
 import javax.swing.JCheckBox;
 import javax.swing.DefaultComboBoxModel;
 
+import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.awt.event.ActionEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
+
 public class RecordManagementForm {
+	
+	int oldRecord = -1;
 
 	private JFrame frame;
-	private JSpinner IdText;
-	private JComboBox<Object> typeText;
-	private JTextField retailorLocationText;
-	private JTextField retailorNameText;
-	private JComboBox<Object> repetitionIntervalText;
+	
+	private JSpinner IdSpinner;
+	private JCheckBox paidTick;
+	private expenseTypeE expenseType;
+	private JComboBox<Object> typeSelection;	
+	private JComboBox<Object> repetitionIntervalSelection;
+	private JTextField retailerNameText;
+	private JTextField retailerLocationText;
+	private JTextField operationDateText;
+	private JTextField otherDetailsText;
+
+
 	private JTextField amountText;
 	
 	/**
@@ -51,6 +68,7 @@ public class RecordManagementForm {
 	 */
 	public RecordManagementForm(User currentUser) {
 		initialize(currentUser);
+		IdSpinner.setValue(currentUser.records.size()); // to refresh 0th record
 	}
 
 	/**
@@ -63,16 +81,6 @@ public class RecordManagementForm {
 		frame.setBounds(100, 100, 360, 600);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		/*
-		ExpenseRecord baseRecord = currentUser.records.get(0);
-		String retailorName = baseRecord.getRetailorName(); 
-		String retailorLocation = baseRecord.getRetailorLocation();
-		repetitionInterval repetitionIntervalSelection;
-		paymentStatus paymentStatusSelection;
-		double amount = baseRecord.getAmount();
-		LocalDate operationDate = baseRecord.getOperationDate();
-		*/
-		
 		Container p = frame.getContentPane();
 		p.setLayout(null);
 		
@@ -84,11 +92,11 @@ public class RecordManagementForm {
 		l2.setBounds(25, 89, 130, 25);
 		frame.getContentPane().add(l2);
 		
-		JLabel l3 = new JLabel("retailor name");
+		JLabel l3 = new JLabel("retailer name");
 		l3.setBounds(25, 146, 130, 25);
 		frame.getContentPane().add(l3);
 		
-		JLabel l4 = new JLabel("retailor location");
+		JLabel l4 = new JLabel("retailer location");
 		l4.setBounds(25, 203, 130, 25);
 		frame.getContentPane().add(l4);
 		
@@ -109,46 +117,61 @@ public class RecordManagementForm {
 		frame.getContentPane().add(l9);
 		
 		JButton btnInsert = new JButton("Insert Record");
+		btnInsert.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				currentUser.records.add(new ExpenseRecord());
+				IdSpinner.setValue(currentUser.records.size());
+			}
+		});
 		btnInsert.setBounds(18, 485, 150, 25);
 		frame.getContentPane().add(btnInsert);
 
-		JTextField operationDateText = new JTextField();
+		operationDateText = new JTextField();
 		frame.getContentPane().add(operationDateText);
 		
-		IdText = new JSpinner();
-		IdText.setBounds(165, 32, 150, 25);
-		//SpinnerNumberModel limits = new SpinnerNumberModel(5.0, 0, currentUser.records, 1.0);  
-		//new SpinnerNumberModel(Default, Min, Max, Step);  
-		//JSpinner spin1 = new JSpinner(limits);
-		frame.getContentPane().add(IdText);
+		IdSpinner = new JSpinner();
+		IdSpinner.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				//JOptionPane.showMessageDialog(frame, oldRecord, "old and new?", JOptionPane.OK_CANCEL_OPTION);
+				//if (sniffChanges())
+				int nowAt = (int)IdSpinner.getValue(); 
+				if (nowAt < currentUser.records.size() & nowAt > -1) {
+					ExpenseRecord record = currentUser.records.get((int) IdSpinner.getValue());
+					updateFields(record);
+				} else {
+					if (nowAt<0) {IdSpinner.setValue(0);}
+					else {IdSpinner.setValue(currentUser.records.size()-1);}
+				}
+			}
+		});
+		IdSpinner.setBounds(165, 32, 150, 25);
+		frame.getContentPane().add(IdSpinner);
 		
-		typeText = new JComboBox<Object>();
-		typeText.setModel(new DefaultComboBoxModel<Object>(expenseType.values()));
-		typeText.setBounds(165, 89, 150, 25);
-		frame.getContentPane().add(typeText);
+		typeSelection = new JComboBox<Object>();
+		typeSelection.setModel(new DefaultComboBoxModel<Object>(expenseTypeE.values()));
+		typeSelection.setBounds(165, 89, 150, 25);
+		frame.getContentPane().add(typeSelection);
 		
-		retailorLocationText = new JTextField();
-		retailorLocationText.setColumns(10);
-		retailorLocationText.setBounds(165, 203, 150, 25);
-		frame.getContentPane().add(retailorLocationText);
+		retailerLocationText = new JTextField();
+		retailerLocationText.setColumns(10);
+		retailerLocationText.setBounds(165, 203, 150, 25);
+		frame.getContentPane().add(retailerLocationText);
 		
-		retailorNameText = new JTextField();
-		retailorNameText.setColumns(10);
-		retailorNameText.setBounds(165, 146, 150, 25);
-		frame.getContentPane().add(retailorNameText);
-		//retailorName = retailorNameText.getText();
+		retailerNameText = new JTextField();
+		retailerNameText.setColumns(10);
+		retailerNameText.setBounds(165, 146, 150, 25);
+		frame.getContentPane().add(retailerNameText);
 		
-		repetitionIntervalText = new JComboBox<Object>();
-		repetitionIntervalText.setModel(new DefaultComboBoxModel<Object>(repetitionInterval.values()));
-		repetitionIntervalText.setBounds(165, 431, 150, 25);
-		frame.getContentPane().add(repetitionIntervalText);
-		//paymentStatusSelection = (paymentStatus) statusText.getSelectedItem();
+		repetitionIntervalSelection = new JComboBox<Object>();
+		repetitionIntervalSelection.setModel(new DefaultComboBoxModel<Object>(repetitionIntervalE.values()));
+		repetitionIntervalSelection.setBounds(165, 431, 150, 25);
+		frame.getContentPane().add(repetitionIntervalSelection);
 
 		JSpinner timeSpinnerText = new JSpinner(new SpinnerDateModel());
 		DateEditor timeSpinnerTextSelection = new JSpinner.DateEditor(timeSpinnerText, "yyyy-MM-dd HH:mm:ss");
 		timeSpinnerText.setBounds(165, 317, 150, 25);
 		timeSpinnerText.setEditor(timeSpinnerTextSelection);
-		//timeSpinnerText.setValue(LocalDate.now());
 		frame.getContentPane().add(timeSpinnerText);
 		
 		amountText = new JTextField();
@@ -156,26 +179,83 @@ public class RecordManagementForm {
 		amountText.setBounds(165, 260, 150, 25);
 		frame.getContentPane().add(amountText);
 		
-		JTextField detailsText = new JTextField();
-		detailsText.setBounds(165, 374, 150, 25);
-		frame.getContentPane().add(detailsText);
+		otherDetailsText = new JTextField();
+		otherDetailsText.setBounds(165, 374, 150, 25);
+		frame.getContentPane().add(otherDetailsText);
 		
 		JButton btnDelete = new JButton("Delete Record");
+		btnDelete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int totalCount = currentUser.records.size();
+				if (totalCount>1) {
+					int id = (int) IdSpinner.getValue();
+					currentUser.records.remove(id);
+					IdSpinner.setValue(totalCount);
+				} else {
+					JOptionPane.showMessageDialog(frame, "The last and only record cannot be deleted","Invalid Operation",JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
 		btnDelete.setBounds(180, 485, 150, 25);
 		frame.getContentPane().add(btnDelete);
 		
 		
-		JButton btnSave = new JButton("Save changes");
+		JButton btnSave = new JButton("Apply changes");
+		btnSave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ExpenseRecord record = currentUser.records.get((int) IdSpinner.getValue());
+				applyChanges(record);
+			}
+		});
 		btnSave.setBounds(18, 516, 150, 25);
 		frame.getContentPane().add(btnSave);
 		
 		JButton btnDiscard = new JButton("Discard changes");
+		btnDiscard.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			    Object[] options = {"Discard Changes","Apply Changes"};
+			    int confirmation = JOptionPane.showOptionDialog(frame, "Are you sure?", "Discard Changes?", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+			    ExpenseRecord record = currentUser.records.get((int) IdSpinner.getValue());
+			    if(confirmation==0)
+			    	updateFields(record);
+			    if(confirmation==1)
+			    	applyChanges(record);
+			}
+		});
 		btnDiscard.setBounds(180, 516, 150, 25);
 		frame.getContentPane().add(btnDiscard);
 		
-		JCheckBox paidTick = new JCheckBox("Paid");
-		paidTick.setBounds(109, 32, 50, 24);
+		paidTick = new JCheckBox("Paid");
+		paidTick.setBounds(112, 89, 50, 24);
 		frame.getContentPane().add(paidTick);
-		frame.getContentPane().setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{IdText, typeText, retailorNameText, retailorLocationText, amountText, detailsText, repetitionIntervalText, operationDateText, btnInsert, l1, l2, l4, l3, l9, l5, l6}));
-	}	
+		frame.getContentPane().setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{IdSpinner, typeSelection, retailerNameText, retailerLocationText, amountText, otherDetailsText, repetitionIntervalSelection, operationDateText, btnInsert, l1, l2, l4, l3, l9, l5, l6}));
+	}
+	
+	void updateFields(ExpenseRecord record) {
+		amountText.setText(Double.toString(record.getAmount()));
+		paidTick.setSelected(record.getPaid());
+		expenseType = record.getExpenseType();
+		typeSelection.setSelectedItem(expenseType);
+		repetitionIntervalSelection.setSelectedItem((repetitionIntervalE)record.getRepetitionInterval());					
+		retailerNameText.setText(record.getRetailerName());
+		retailerLocationText.setText(record.getRetailerLocation());
+		operationDateText.setText(record.getOperationDate().toString());
+		otherDetailsText.setText(record.getOtherDetails());
+	}
+
+	void applyChanges(ExpenseRecord record) {
+		record.setAmount(Double.parseDouble(amountText.getText()));
+		record.setPaid(paidTick.isSelected());
+		record.setPaymentStatus(paymentStatusE.values()[paidTick.isSelected() ? 1 : 0 ]);
+		record.setExpenseType((expenseTypeE) typeSelection.getSelectedItem());
+		record.setRepetitionInterval((repetitionIntervalE) repetitionIntervalSelection.getSelectedItem());
+		record.setRetailerName(retailerNameText.getText());
+		record.setRetailerLocation(retailerLocationText.getText());
+		record.setOperationDate(LocalDate.parse(operationDateText.getText()));
+		record.setOtherDetails(otherDetailsText.getText());
+	}
+	
+	boolean sniffChanges(ExpenseRecord record) {
+		return false;
+	}
 }

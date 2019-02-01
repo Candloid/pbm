@@ -2,7 +2,7 @@ package com.concordia.personalBudgetManager;
 
 import java.util.ArrayList;
 
-public class User extends Actor {
+public class User {
 	String name="SomeUser";
 	
 	ArrayList<ExpenseRecord> records = new ArrayList<ExpenseRecord>();
@@ -20,7 +20,7 @@ public class User extends Actor {
     void addExpense(ExpenseRecord recordID){
     	records.add(recordID);
     }
-
+    
     void removeExpense(ExpenseRecord recordID){
     	records.remove(recordID);
     }
@@ -31,7 +31,7 @@ public class User extends Actor {
     	oldRecord.setOperationDate(newRecord.getOperationDate());
     	oldRecord.setOtherDetails(newRecord.getOtherDetails());
     	oldRecord.setPaid(newRecord.getPaid());
-    	oldRecord.setRetailorLocation(newRecord.getRetailorLocation());
-    	oldRecord.setRetailorName(newRecord.getRetailorName());
+    	oldRecord.setRetailerLocation(newRecord.getRetailerLocation());
+    	oldRecord.setRetailerName(newRecord.getRetailerName());
     }
 }
