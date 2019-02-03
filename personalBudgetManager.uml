@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>com.concordia.personalBudgetManager</OriginalElement>
+  <nodes>
+    <node x="726.0" y="161.5">com.concordia.personalBudgetManager.ExpenseRecord</node>
+    <node x="-3.5" y="294.0">com.concordia.personalBudgetManager.Main</node>
+    <node x="995.0" y="620.5">com.concordia.personalBudgetManager.User</node>
+    <node x="248.5" y="62.0">com.concordia.personalBudgetManager.RecordManagementForm</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="com.concordia.personalBudgetManager.Main" target="com.concordia.personalBudgetManager.User">
+      <point x="40.0" y="26.0" />
+      <point x="120.0" y="680.0" />
+      <point x="-125.0" y="0.0" />
+    </edge>
+    <edge source="com.concordia.personalBudgetManager.RecordManagementForm" target="com.concordia.personalBudgetManager.ExpenseRecord">
+      <point x="191.5" y="0.0" />
+      <point x="-394.0" y="0.0" />
+    </edge>
+    <edge source="com.concordia.personalBudgetManager.Main" target="com.concordia.personalBudgetManager.RecordManagementForm">
+      <point x="83.5" y="0.0" />
+      <point x="-191.5" y="0.0" />
+    </edge>
+    <edge source="com.concordia.personalBudgetManager.RecordManagementForm" target="com.concordia.personalBudgetManager.User">
+      <point x="0.0" y="258.0" />
+      <point x="440.0" y="660.0" />
+      <point x="-125.0" y="-20.0" />
+    </edge>
+    <edge source="com.concordia.personalBudgetManager.User" target="com.concordia.personalBudgetManager.ExpenseRecord">
+      <point x="0.0" y="-59.5" />
+      <point x="0.0" y="158.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="639.0" y="312.0" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Methods</Category>
+    <Category>Fields</Category>
+    <Category>Properties</Category>
+    <Category>Constructors</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
