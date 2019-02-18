@@ -8,8 +8,10 @@ public class User {
 	ArrayList<ExpenseRecord> records = new ArrayList<ExpenseRecord>();
 	
 	User(){
+		/*
 		ExpenseRecord zeroRecord = new ExpenseRecord();
 		records.add(zeroRecord);
+		*/
 	}
 	
 	User(String name){

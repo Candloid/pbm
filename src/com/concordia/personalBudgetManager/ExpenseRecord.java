@@ -4,64 +4,77 @@ import java.time.LocalDate;
 
 public class ExpenseRecord {
 	public enum expenseTypeE{Purchase,Bill};
-	public enum paymentStatusE{Unpaid,paid};
-	public enum operationTypeE{Deposit,Withdraw,Modify,Delete};
-	public enum statusDescriptionE{paidByCash,paidByDebit,dueByCredit};
+	public enum paymentTypeE{paidByCash,paidByDebit,dueByCredit};
 	public enum repetitionIntervalE{Once,Day,Bidaily,Weekly,Biweekly,Monthly,Yearly};
+	public enum recordFieldE					{amount,	paid,	paidDate,		expenseType,			paymentType,				repetitionInterval,		retailerName,	retailerLocation,	operationDate,		otherDetails};
+	public static String[] recordFieldStrings =	{"Amount",	"Paid",	"Paid Date",	"Expense Type",			"Payment Type",				"Repetition Interval",	"Retailer Name","Retailer Location","Operation Date",	"Other Details"};
+	public final static Object[] nullRecord=	{0.0,		false,	LocalDate.now(),expenseTypeE.Purchase,	paymentTypeE.dueByCredit,	repetitionIntervalE.Once,"",			"",					LocalDate.now(),	""};
 	
 	private expenseTypeE expenseType; 
-	private paymentStatusE paymentStatus;
-	private operationTypeE operationType;
-	private statusDescriptionE statusDescrpition;
+	private paymentTypeE paymentType;
 	private repetitionIntervalE repetitionInterval;
 
 	private double amount;
 	private boolean paid;
 	private String retailerName, retailerLocation, otherDetails;
-	private LocalDate operationDate;
+	private LocalDate operationDate, paidDate;
+	private Object[] record;
 	
 	ExpenseRecord() {
-		this(0.0,false,expenseTypeE.Purchase,paymentStatusE.Unpaid,statusDescriptionE.dueByCredit,
-				repetitionIntervalE.Once,"Retailer Name","Retailer Location",LocalDate.now(),"Details");
+		this(nullRecord);
 	}
 	
-	ExpenseRecord(double amount, Boolean paid, expenseTypeE expenseType, paymentStatusE paymentStatus, statusDescriptionE statusDescription,
+	ExpenseRecord(double amount, Boolean paid, LocalDate paidDate, expenseTypeE expenseType, paymentTypeE statusDescription,
 			repetitionIntervalE repetitionInterval, String retailerName, String retailerLocation, LocalDate operationDate, String otherDetails) {
 		this.amount = amount;
 		this.paid = paid;
+		this.paidDate = operationDate;
 		this.expenseType = expenseTypeE.Purchase;
-		this.paymentStatus = paymentStatusE.Unpaid;
-		this.statusDescrpition = statusDescriptionE.dueByCredit;
+		this.paymentType = paymentTypeE.dueByCredit;
 		this.repetitionInterval = repetitionIntervalE.Once;
 		this.retailerName = retailerName;
 		this.retailerLocation = retailerLocation;
 		this.operationDate = operationDate;
 		this.otherDetails = otherDetails;
+		Object[] recordBody = {this.amount, this.paid, this.paidDate, this.expenseType, this.paymentType, this.repetitionInterval, this.retailerName, this.retailerLocation, this.operationDate, this.otherDetails};
+		this.record = recordBody;
+	}
+	
+	ExpenseRecord(Object[] record) {
+		this.amount = (double) record[recordFieldE.amount.ordinal()];
+		this.paid = (boolean) record[recordFieldE.paid.ordinal()];
+		this.paidDate = (LocalDate) record[recordFieldE.paidDate.ordinal()];
+		this.expenseType = (expenseTypeE) record[recordFieldE.expenseType.ordinal()];
+		this.paymentType = (paymentTypeE) record[recordFieldE.paymentType.ordinal()];
+		this.repetitionInterval = (repetitionIntervalE) record[recordFieldE.repetitionInterval.ordinal()];
+		this.retailerName = (String) record[recordFieldE.retailerName.ordinal()];
+		this.retailerLocation = (String) record[recordFieldE.retailerLocation.ordinal()];
+		this.operationDate = (LocalDate) record[recordFieldE.operationDate.ordinal()];
+		this.otherDetails = (String) record[recordFieldE.otherDetails.ordinal()];
+		this.record=record;
 	}
 		
 	public double getAmount() {return this.amount;}
 	public boolean getPaid() {return this.paid;}
+	public LocalDate getPaidDate() {return this.paidDate;}
 	public expenseTypeE getExpenseType(){return this.expenseType;}
-	public paymentStatusE getPaymentStatus(){return this.paymentStatus;}
-	public operationTypeE getOperationType(){return this.operationType;}
-	public statusDescriptionE getStatusDescrpition(){return this.statusDescrpition;}
+	public paymentTypeE getpaymentType(){return this.paymentType;}
 	public repetitionIntervalE getRepetitionInterval(){return this.repetitionInterval;}
-
 	public String getRetailerName(){return this.retailerName;}
 	public String getRetailerLocation(){return this.retailerLocation;}
 	public LocalDate getOperationDate(){return this.operationDate;}
 	public String getOtherDetails(){return this.otherDetails;}
+	public Object[] getRecord() {return this.record;}
 	
 	public void setAmount(double amount) {this.amount=amount;}
 	public void setPaid(boolean paid) {this.paid=paid;}
+	public void setPaidDate(LocalDate paidDate) {this.paidDate=paidDate;}
 	public void setExpenseType(expenseTypeE expenseType){this.expenseType=expenseType;}
-	public void setPaymentStatus(paymentStatusE paymentStatus){this.paymentStatus=paymentStatus;}
-	public void setOperationType(operationTypeE operationType){this.operationType=operationType;}
-	/*public void setStatusDescrpition(statusDescriptionE statusDescription){this.statusDescrpition=statusDescrpition;}*/
+	public void setpaymentType(paymentTypeE paymentType){this.paymentType=paymentType;}
 	public void setRepetitionInterval(repetitionIntervalE repetitionInterval){this.repetitionInterval=repetitionInterval;}
-
 	public void setRetailerName(String retailerName){this.retailerName=retailerName;}
 	public void setRetailerLocation(String retailerLocation){this.retailerLocation=retailerLocation;}
 	public void setOperationDate(LocalDate operationDate){this.operationDate=operationDate;}	
 	public void setOtherDetails(String otherDetails){this.otherDetails=otherDetails;}
+	public void setRecord(Object[] record) {this.record=record;}
 }
