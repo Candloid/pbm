@@ -24,14 +24,14 @@ public class ExpenseRecord {
 		this(nullRecord);
 	}
 	
-	ExpenseRecord(double amount, Boolean paid, LocalDate paidDate, expenseTypeE expenseType, paymentTypeE statusDescription,
+	ExpenseRecord(double amount, Boolean paid, LocalDate paidDate, expenseTypeE expenseType, paymentTypeE paymentType,
 			repetitionIntervalE repetitionInterval, String retailerName, String retailerLocation, LocalDate operationDate, String otherDetails) {
 		this.amount = amount;
 		this.paid = paid;
 		this.paidDate = operationDate;
-		this.expenseType = expenseTypeE.Purchase;
-		this.paymentType = paymentTypeE.dueByCredit;
-		this.repetitionInterval = repetitionIntervalE.Once;
+		this.expenseType = expenseType;
+		this.paymentType = paymentType;
+		this.repetitionInterval = repetitionInterval;
 		this.retailerName = retailerName;
 		this.retailerLocation = retailerLocation;
 		this.operationDate = operationDate;
