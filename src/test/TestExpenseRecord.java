@@ -89,16 +89,6 @@ class TestExpenseRecord {
         assertEquals(specificRecordByParameters.getRecord(), specificObject);
     }
 
-
-//	public expenseTypeE getExpenseType(){return this.expenseType;}
-//	public paymentTypeE getpaymentType(){return this.paymentType;}
-//	public repetitionIntervalE getRepetitionInterval(){return this.repetitionInterval;}
-//	public String getRetailerName(){return this.retailerName;}
-//	public String getRetailerLocation(){return this.retailerLocation;}
-//	public LocalDate getOperationDate(){return this.operationDate;}
-//	public String getOtherDetails(){return this.otherDetails;}
-//	public Object[] getRecord() {return this.record;}
-
     @Test
     void testGetAmount() {
         //GIVEN
