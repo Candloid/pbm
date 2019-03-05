@@ -20,12 +20,12 @@ public class ExpenseRecord {
 	private LocalDate operationDate, paidDate;
 	private Object[] record;
 	
-	ExpenseRecord() {
+	public ExpenseRecord() {
 		this(nullRecord);
 	}
 	
-	ExpenseRecord(double amount, Boolean paid, LocalDate paidDate, expenseTypeE expenseType, paymentTypeE paymentType,
-			repetitionIntervalE repetitionInterval, String retailerName, String retailerLocation, LocalDate operationDate, String otherDetails) {
+	public ExpenseRecord(double amount, Boolean paid, LocalDate paidDate, expenseTypeE expenseType, paymentTypeE paymentType,
+						 repetitionIntervalE repetitionInterval, String retailerName, String retailerLocation, LocalDate operationDate, String otherDetails) {
 		this.amount = amount;
 		this.paid = paid;
 		this.paidDate = operationDate;
@@ -40,7 +40,7 @@ public class ExpenseRecord {
 		this.record = recordBody;
 	}
 	
-	ExpenseRecord(Object[] record) {
+	public ExpenseRecord(Object[] record) {
 		this.amount = (double) record[recordFieldE.amount.ordinal()];
 		this.paid = (boolean) record[recordFieldE.paid.ordinal()];
 		this.paidDate = (LocalDate) record[recordFieldE.paidDate.ordinal()];
