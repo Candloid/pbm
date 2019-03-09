@@ -14,7 +14,7 @@ import com.concordia.personalBudgetManager.ExpenseRecord.expenseTypeE;
 import com.concordia.personalBudgetManager.ExpenseRecord.paymentTypeE;
 import com.concordia.personalBudgetManager.ExpenseRecord.repetitionIntervalE;
 
-class TestExpenseRecord {
+class ExpenseRecordTest {
     // Initialize a random user, two matching records from two different constructors.
     private static String Username = "Random User";
     private static User randomUser = new User(Username);
@@ -124,7 +124,7 @@ class TestExpenseRecord {
         //WHEN
         LocalDate actualExpectedDate = expenseRecord.getPaidDate();
         //THEN
-        assertEquals(localDate,actualExpectedDate);
+        assertEquals(localDate, actualExpectedDate);
 
     }
 
@@ -137,7 +137,7 @@ class TestExpenseRecord {
         //WHEN
         expenseTypeE actualExpenseType = expenseRecord.getExpenseType();
         //THEN
-        assertEquals(expenseTypeE.Bill,actualExpenseType);
+        assertEquals(expenseTypeE.Bill, actualExpenseType);
 
     }
 

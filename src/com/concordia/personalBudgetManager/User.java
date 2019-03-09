@@ -14,4 +14,20 @@ public class User {
 		this();
 		this.name = name;
 	}
+
+    public String getName() {
+        return name;
+    }
+
+    public ArrayList<ExpenseRecord> getRecords() {
+        return records;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setRecords(ArrayList<ExpenseRecord> records) {
+        this.records = records;
+    }
 }

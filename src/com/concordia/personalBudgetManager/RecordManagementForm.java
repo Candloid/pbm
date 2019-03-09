@@ -372,7 +372,7 @@ public class RecordManagementForm {
 	}
 	
 	// Creates a record from the form
-	private ExpenseRecord packRecord() {
+	public ExpenseRecord packRecord() {
 		/*{"Amount", "Paid", "Paid Date", "Expense Type", "Status Description",
 		"Repetition Interval", "Retailer Name","Retailer Location","Operation Date",
 		"Other Details"};*/
@@ -434,7 +434,7 @@ public class RecordManagementForm {
     	paymentTypeCol.setCellRenderer(new DefaultTableCellRenderer());
 //<== multi-line tag ending to here for proper Design view */
     }
-    private LocalDate toLocalDate(Date input) {return input.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();}
+    public LocalDate toLocalDate(Date input) {return input.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();}
     private Date toDate(LocalDate input) {return Date.from(input.atStartOfDay(ZoneId.systemDefault()).toInstant());}
     private void toggleButtons(){
     	toggleCounter++;
