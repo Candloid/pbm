@@ -114,7 +114,7 @@ public class RecordManagementForm {
 				data[i][j] = currentUser.records.get(i).getRecord()[j];
 			}
 		}
-		//END-Vlad
+		//END-Vlad's part
 		
 		model = new DefaultTableModel(data, ExpenseRecord.recordFieldStrings) {
 			/**
@@ -141,7 +141,7 @@ public class RecordManagementForm {
 		*/
 		//mainTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		mainTable.setRowSelectionAllowed(true);
-		mainTable.setAutoCreateRowSorter(true); //Vlad - this enables sort by clicking headers
+		mainTable.setAutoCreateRowSorter(true); //Vlad - this line enables sorting by clicking headers
 		
 		mainTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		mainTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -156,7 +156,7 @@ public class RecordManagementForm {
 				btnDelete.setEnabled(true);
 				btnDiscard.setEnabled(true);
 				
-				//Vlad - if a row is selected, we check if we need to show the paidDateSpinner
+				//Vlad - if a row is selected, we check if we need to enable the paidDateSpinner
 				paidDateSpinner.setEnabled(paidTick.isSelected());
 			}
 		});
@@ -183,20 +183,6 @@ public class RecordManagementForm {
 				mainTable.setRowSorter(sorter);
 			}
 		});
-		/*chckbxShowPaid.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				TableRowSorter<TableModel> sorter = new TableRowSorter<>(mainTable.getModel());
-				if (chckbxShowPaid.isSelected()) {
-					sorter.setRowFilter(RowFilter.regexFilter("[truefalse]"));
-					mainTable.setRowSorter(sorter);
-				} else {
-					sorter.setRowFilter(RowFilter.regexFilter("true"));
-					mainTable.setRowSorter(sorter);
-				}
-			}
-		});*/
-		
-		
 		
 		frame.getContentPane().add(chckbxShowPaid);
 		toggleButtons();
