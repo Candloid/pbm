@@ -411,7 +411,7 @@ public class RecordManagementForm {
 	}
 	
     private void setUpColumnInputModels() {
-// /*<== multi-line tag starting from here for proper access to Design view, just delete '//'
+/*<== multi-line tag starting from here for proper access to Design view, just delete '//'
     	TableColumn paidCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.paid.ordinal());
     	TableColumn expenseTypeCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.expenseType.ordinal());
     	TableColumn repetitionIntervalCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.repetitionInterval.ordinal());
