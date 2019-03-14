@@ -7,6 +7,7 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
@@ -33,6 +34,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import javax.swing.event.ChangeEvent;
 import javax.swing.JScrollPane;
 import java.time.LocalDate;
@@ -101,7 +104,19 @@ public class RecordManagementForm {
 	// Create the application.
 	public RecordManagementForm(User currentUser) {
 		initialize(currentUser);
-		model = new DefaultTableModel(null, ExpenseRecord.recordFieldStrings) {
+		
+		//Filling the object array to add to the model - Vlad
+		//Gets filled from the records array list
+		Object[][] data = new Object [currentUser.records.size()][currentUser.records.get(0).getRecord().length];
+		
+		for (int i = 0; i < data.length; i++) {
+			for (int j = 0; j < data[0].length; j++) {
+				data[i][j] = currentUser.records.get(i).getRecord()[j];
+			}
+		}
+		//END-Vlad
+		
+		model = new DefaultTableModel(data, ExpenseRecord.recordFieldStrings) {
 			/**
 			 Makes the table read-only. 
 			 */
@@ -125,6 +140,9 @@ public class RecordManagementForm {
 		});
 		*/
 		//mainTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		mainTable.setRowSelectionAllowed(true);
+		mainTable.setAutoCreateRowSorter(true); //Vlad - this enables sort by clicking headers
+		
 		mainTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		mainTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			@Override
@@ -132,6 +150,14 @@ public class RecordManagementForm {
 				int nowAt = mainTable.getSelectedRow();
 				if(nowAt != -1)
 					idSpinner.setValue(nowAt);
+				
+				//Vlad - if a row is selected, we need to activate buttons the buttons.
+				btnSave.setEnabled(true);
+				btnDelete.setEnabled(true);
+				btnDiscard.setEnabled(true);
+				
+				//Vlad - if a row is selected, we check if we need to show the paidDateSpinner
+				paidDateSpinner.setEnabled(paidTick.isSelected());
 			}
 		});
 
@@ -141,6 +167,38 @@ public class RecordManagementForm {
 		scrollPane.setViewportView(mainTable);
 		
 		amountText.setText("0.0");
+		
+		//Vlad - checkbox to show and hide paid expenses
+		JCheckBox chckbxShowPaid = new JCheckBox("Show paid expenses and bills");
+		chckbxShowPaid.setSelected(true);
+		chckbxShowPaid.setBounds(343, 7, 271, 23);
+		chckbxShowPaid.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				TableRowSorter<TableModel> sorter = new TableRowSorter<>(mainTable.getModel());
+				if (chckbxShowPaid.isSelected()) {
+					sorter.setRowFilter(RowFilter.regexFilter("[truefalse]"));
+				} else {
+					sorter.setRowFilter(RowFilter.regexFilter("true"));
+				}
+				mainTable.setRowSorter(sorter);
+			}
+		});
+		/*chckbxShowPaid.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				TableRowSorter<TableModel> sorter = new TableRowSorter<>(mainTable.getModel());
+				if (chckbxShowPaid.isSelected()) {
+					sorter.setRowFilter(RowFilter.regexFilter("[truefalse]"));
+					mainTable.setRowSorter(sorter);
+				} else {
+					sorter.setRowFilter(RowFilter.regexFilter("true"));
+					mainTable.setRowSorter(sorter);
+				}
+			}
+		});*/
+		
+		
+		
+		frame.getContentPane().add(chckbxShowPaid);
 		toggleButtons();
 	}
 	
@@ -195,6 +253,7 @@ public class RecordManagementForm {
 		frame.getContentPane().add(operationDateSpinner);
 		
 		paidDateSpinner = new JSpinner(new SpinnerDateModel());
+		paidDateSpinner.setEnabled(false);
 		paidDateSpinner.setEditor(new JSpinner.DateEditor(paidDateSpinner, "yyyy-MM-dd HH:mm:ss"));
 		paidDateSpinner.setBounds(165, 68, 150, 25);
 		frame.getContentPane().add(paidDateSpinner);
@@ -353,7 +412,7 @@ public class RecordManagementForm {
 		frame.getContentPane().add(paidTick);
 		paidTick.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				paidDateSpinner.setVisible(paidTick.isSelected());
+				paidDateSpinner.setEnabled(paidTick.isSelected());
 			}
 		});
 	}
