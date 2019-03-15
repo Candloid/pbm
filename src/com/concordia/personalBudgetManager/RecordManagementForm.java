@@ -105,16 +105,23 @@ public class RecordManagementForm {
 	public RecordManagementForm(User currentUser) {
 		initialize(currentUser);
 		
-		//Filling the object array to add to the model - Vlad
-		//Gets filled from the records array list
-		Object[][] data = new Object [currentUser.records.size()][currentUser.records.get(0).getRecord().length];
-		
-		for (int i = 0; i < data.length; i++) {
-			for (int j = 0; j < data[0].length; j++) {
-				data[i][j] = currentUser.records.get(i).getRecord()[j];
-			}
+		//Vlad - Filling the object array to add to the model
+		//Gets filled from the records array list, unless there records are empty - then null
+		Object[][] data;
+		if (currentUser.records.size() > 0) {
+			data = new Object [currentUser.records.size()][currentUser.records.get(0).getRecord().length];
+		} else {
+			data = null;
 		}
-		//END-Vlad's part
+			
+		if (data != null) {
+			for (int i = 0; i < data.length; i++) {
+				for (int j = 0; j < data[0].length; j++) {
+					data[i][j] = currentUser.records.get(i).getRecord()[j];
+				}
+			}
+			//END-Vlad's part
+		}
 		
 		model = new DefaultTableModel(data, ExpenseRecord.recordFieldStrings) {
 			/**
