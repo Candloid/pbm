@@ -1,7 +1,5 @@
 package com.concordia.personalBudgetManager;
 
-import java.time.LocalDate;
-
 import com.concordia.personalBudgetManager.ExpenseRecord.expenseTypeE;
 import com.concordia.personalBudgetManager.ExpenseRecord.paymentTypeE;
 import com.concordia.personalBudgetManager.ExpenseRecord.repetitionIntervalE;
