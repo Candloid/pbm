@@ -13,7 +13,7 @@ public class User {
 	ArrayList<ExpenseRecord> records = new ArrayList<ExpenseRecord>();
 	
 	User(){
-    	loadRecords();
+		loadInitialRecords();
 	}
 	
 	public User(String name){
@@ -38,14 +38,27 @@ public class User {
         this.records = records;
     }
     
-    private void loadRecords() {
+    public void loadInitialRecords() {
     	//Vlad - loading expense records - uncomment and change after merge with 2-level version
-    	ExpenseRecord [] preloadedRecords = new ExpenseRecord [5];
+    	ExpenseRecord [] preloadedRecords = new ExpenseRecord [6];
     	for (int i = 0; i < preloadedRecords.length; i++) {
-    		preloadedRecords[i] = new ExpenseRecord(1000 * i + 1, i%2 == 0 ? true : false, LocalDate.now(), expenseTypeE.Purchase,
-    				paymentTypeE.dueByCredit, repetitionIntervalE.Once, "Retailer " + i, "Location " + i,
+    		preloadedRecords[i] = new ExpenseRecord(1000 * i + 1, i%2 == 0 ? true : false, LocalDate.now(), expenseTypeE.values()[i%expenseTypeE.values().length],
+    				paymentTypeE.dueByCredit, repetitionIntervalE.values()[i%repetitionIntervalE.values().length], "Retailer " + i, "Location " + i,
     				LocalDate.now(), "");
     		records.add(preloadedRecords[i]);
+    		if(preloadedRecords[i].getExpenseType().equals(expenseTypeE.Composite)) {
+    			double subAmount = 0; boolean subPaid = true;
+    			for (int j = 0; j < 6; j++) {
+	    			preloadedRecords[i].addSubRecord(new ExpenseRecord(1000 * j + 1, j%2 == 0 ? true : false, LocalDate.now(),
+	    					expenseTypeE.values()[j%(expenseTypeE.values().length-1)],paymentTypeE.values()[j%paymentTypeE.values().length],
+	    					repetitionIntervalE.values()[j%repetitionIntervalE.values().length], "Retailer " + j, "Location " + j, LocalDate.now(), "Sub of " + i));
+	    			subAmount += preloadedRecords[i].getSubRecord(j).getAmount();
+	    			subPaid &= preloadedRecords[i].getSubRecord(j).getPaid();
+    			}
+    			preloadedRecords[i].setAmount(subAmount);
+    			preloadedRecords[i].setPaid(subPaid);
+    			records.set(i, preloadedRecords[i]);
+    		}
     	}
     	//end of loading expense records
     }

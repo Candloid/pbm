@@ -1,9 +1,10 @@
 package com.concordia.personalBudgetManager;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public class ExpenseRecord {
-	public enum expenseTypeE{Purchase,Bill};
+	public enum expenseTypeE{Purchase,Bill,Composite};
 	public enum paymentTypeE{paidByCash,paidByDebit,dueByCredit};
 	public enum repetitionIntervalE{Once,Day,Bidaily,Weekly,Biweekly,Monthly,Yearly};
 	public enum recordFieldE					{amount,	paid,	paidDate,		expenseType,			paymentType,				repetitionInterval,		retailerName,	retailerLocation,	operationDate,		otherDetails};
@@ -19,6 +20,7 @@ public class ExpenseRecord {
 	private String retailerName, retailerLocation, otherDetails;
 	private LocalDate operationDate, paidDate;
 	private Object[] record;
+	private ArrayList<ExpenseRecord> subRecords = new ArrayList<ExpenseRecord>();
 	
 	public ExpenseRecord() {
 		this(nullRecord);
@@ -36,7 +38,8 @@ public class ExpenseRecord {
 		this.retailerLocation = retailerLocation;
 		this.operationDate = operationDate;
 		this.otherDetails = otherDetails;
-		Object[] recordBody = {this.amount, this.paid, this.paidDate, this.expenseType, this.paymentType, this.repetitionInterval, this.retailerName, this.retailerLocation, this.operationDate, this.otherDetails};
+		Object[] recordBody = {this.amount, this.paid, this.paidDate, this.expenseType, this.paymentType, this.repetitionInterval,
+				this.retailerName, this.retailerLocation, this.operationDate, this.otherDetails};
 		this.record = recordBody;
 	}
 	
@@ -58,13 +61,15 @@ public class ExpenseRecord {
 	public boolean getPaid() {return this.paid;}
 	public LocalDate getPaidDate() {return this.paidDate;}
 	public expenseTypeE getExpenseType(){return this.expenseType;}
-	public paymentTypeE getpaymentType(){return this.paymentType;}
+	public paymentTypeE getPaymentType(){return this.paymentType;}
 	public repetitionIntervalE getRepetitionInterval(){return this.repetitionInterval;}
 	public String getRetailerName(){return this.retailerName;}
 	public String getRetailerLocation(){return this.retailerLocation;}
 	public LocalDate getOperationDate(){return this.operationDate;}
 	public String getOtherDetails(){return this.otherDetails;}
 	public Object[] getRecord() {return this.record;}
+	public ExpenseRecord getSubRecord(int id) {return this.subRecords.get(id);}
+	public int getSubRecordsCount() {return this.subRecords.size();}
 	
 	public void setAmount(double amount) {this.amount=amount;}
 	public void setPaid(boolean paid) {this.paid=paid;}
@@ -77,4 +82,9 @@ public class ExpenseRecord {
 	public void setOperationDate(LocalDate operationDate){this.operationDate=operationDate;}	
 	public void setOtherDetails(String otherDetails){this.otherDetails=otherDetails;}
 	public void setRecord(Object[] record) {this.record=record;}
+	public void insertSubRecord(int recordId, Object[] someRecord) {this.subRecords.add(recordId, new ExpenseRecord(someRecord));}
+	public void insertSubRecord(int recordId, ExpenseRecord someRecord) {this.subRecords.add(recordId, someRecord);}
+	public void addSubRecord(Object[] someRecord) {this.subRecords.add(new ExpenseRecord(someRecord));}
+	public void addSubRecord(ExpenseRecord someRecord) {this.subRecords.add(someRecord);}
+	public void removeSubRecord(int id) {this.subRecords.remove(id);}
 }

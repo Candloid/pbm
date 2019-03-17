@@ -1,73 +1,69 @@
 package com.concordia.personalBudgetManager;
 
-import com.concordia.personalBudgetManager.ExpenseRecord.*;
-
+import java.awt.Container;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Date;
 
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
-import javax.swing.JButton;
-import java.awt.Container;
-
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-
-import javax.swing.JSpinner;
-import javax.swing.JTable;
-import javax.swing.JComboBox;
-import javax.swing.JCheckBox;
-import javax.swing.DefaultCellEditor;
-import javax.swing.DefaultComboBoxModel;
-
-import java.awt.event.ActionListener;
-import java.util.Arrays;
-import java.util.Date;
-import java.awt.event.ActionEvent;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import javax.swing.event.ChangeEvent;
-import javax.swing.JScrollPane;
-import java.time.LocalDate;
-import java.time.ZoneId;
 
-import javax.swing.UIManager.*;
+import com.concordia.personalBudgetManager.ExpenseRecord.expenseTypeE;
+import com.concordia.personalBudgetManager.ExpenseRecord.paymentTypeE;
+import com.concordia.personalBudgetManager.ExpenseRecord.repetitionIntervalE;
 
 public class RecordManagementForm {
 	
 	private ExpenseRecord currentRecord, packedRecord;
-	int currentRecordId, oldRecordId=0, toggleCounter=1;
-	boolean firstRun = true, deleteInProgress = false;
+	int currentRecordId, oldRecordId=0;
+	boolean firstRun = true, deleteInProgress = false, wasIn = true, nowIn = true;
 
 	private RecordManagementForm window;
 	private JFrame frame;
-	private JTable mainTable;
-	private DefaultTableModel model;
+	private JTable mainTable, subTable;
+	private DefaultTableModel mainModel, subModel;
 
 	private JSpinner idSpinner, paidDateSpinner, operationDateSpinner;
 	private SpinnerNumberModel idRange;
 	private int idMax = 0, idMin = 0;
 	
-	private JCheckBox paidTick;
+	private JCheckBox paidTick, showMainPaid, showSubPaid;
 	private JComboBox<expenseTypeE> expenseTypeSelection;
 	private JComboBox<repetitionIntervalE> repetitionIntervalSelection;
 	private JComboBox<paymentTypeE> paymentTypeSelection;
 	private JTextField retailerNameText, retailerLocationText, amountText, otherDetailsText;
 	
 	private Container p;
-	private JScrollPane scrollPane;
+	private JScrollPane mainPane, subPane;
 	private JLabel l1, l2, l3, l4, l5, l6, l7, l8, l9;
-	private JButton btnInsert, btnDelete, btnSave, btnDiscard;
+	private JButton mainInsert, mainDelete, mainSave, mainDiscard;
+	private JButton subInsert, subSave, subDelete, subDiscard;
 	
 	// Launch the application
 	public void loadForm(User currentUser) {
@@ -89,110 +85,26 @@ public class RecordManagementForm {
 	// Set the "look and feel" of the form
 	private void setLookAndFeel(String themeName) {
 		try {
-		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-		        if (themeName.equals(info.getName())) {
-		            UIManager.setLookAndFeel(info.getClassName());
-		            break;
-		        }
-		    }
+			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+				if (themeName.equals(info.getName())) {
+					UIManager.setLookAndFeel(info.getClassName());
+					break;
+				}
+			}
 		} catch (Exception e) {
 			System.out.println("DEBUG: ERROR - [" + themeName + "] theme is not available");
-		    // If the given theme is not available, you can set the GUI to another look and feel.
+			// If the given theme is not available, you can set the GUI to another look and feel.
 		}
 	}
 
 	// Create the application.
 	public RecordManagementForm(User currentUser) {
 		initialize(currentUser);
-		
-		//Vlad - Filling the object array to add to the model
-		//Gets filled from the records array list, unless there records are empty - then null
-		Object[][] data;
-		if (currentUser.records.size() > 0) {
-			data = new Object [currentUser.records.size()][currentUser.records.get(0).getRecord().length];
-		} else {
-			data = null;
-		}
-			
-		if (data != null) {
-			for (int i = 0; i < data.length; i++) {
-				for (int j = 0; j < data[0].length; j++) {
-					data[i][j] = currentUser.records.get(i).getRecord()[j];
-				}
-			}
-			//END-Vlad's part
-		}
-		
-		model = new DefaultTableModel(data, ExpenseRecord.recordFieldStrings) {
-			/**
-			 Makes the table read-only. 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isCellEditable(int row, int column) {
-				return false;
-			}
-		};
-		mainTable = new JTable(model);
-		mainTable.setBounds(384, 32, 1186, 509);
-		setUpColumnInputModels();	//Fiddle with the Sport column's cell editors/renderers.
-		/*
-		mainTable.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				idSpinner.setValue(mainTable.getSelectedRow());
-				updateFields(new ExpenseRecord(currentUser.records.get((int)idSpinner.getValue()).getRecord()));
-			}
-		});
-		*/
-		//mainTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		mainTable.setRowSelectionAllowed(true);
-		mainTable.setAutoCreateRowSorter(true); //Vlad - this line enables sorting by clicking headers
-		
-		mainTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		mainTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				int nowAt = mainTable.getSelectedRow();
-				if(nowAt != -1)
-					idSpinner.setValue(nowAt);
-				
-				//Vlad - if a row is selected, we need to activate buttons the buttons.
-				btnSave.setEnabled(true);
-				btnDelete.setEnabled(true);
-				btnDiscard.setEnabled(true);
-				
-				//Vlad - if a row is selected, we check if we need to enable the paidDateSpinner
-				paidDateSpinner.setEnabled(paidTick.isSelected());
-			}
-		});
-
-		scrollPane = new JScrollPane();
-		scrollPane.setBounds(343, 32, 933, 430);
-		frame.getContentPane().add(scrollPane);
-		scrollPane.setViewportView(mainTable);
+		enumerateMain(currentUser);
 		
 		amountText.setText("0.0");
-		
-		//Vlad - checkbox to show and hide paid expenses
-		JCheckBox chckbxShowPaid = new JCheckBox("Show paid expenses and bills");
-		chckbxShowPaid.setSelected(true);
-		chckbxShowPaid.setBounds(343, 7, 271, 23);
-		chckbxShowPaid.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				TableRowSorter<TableModel> sorter = new TableRowSorter<>(mainTable.getModel());
-				if (chckbxShowPaid.isSelected()) {
-					sorter.setRowFilter(RowFilter.regexFilter("[truefalse]"));
-				} else {
-					sorter.setRowFilter(RowFilter.regexFilter("true"));
-				}
-				mainTable.setRowSorter(sorter);
-			}
-		});
-		
-		frame.getContentPane().add(chckbxShowPaid);
-		toggleButtons();
+		mainTable.setRowSelectionInterval(0, 0);
+		disableMain();
 	}
 	
 	private void initialize(User currentUser) {
@@ -272,11 +184,10 @@ public class RecordManagementForm {
 							currentRecordId = (int) idSpinner.getValue();
 							currentRecord = currentUser.records.get(currentRecordId);
 							updateFields(currentRecord);
-							//mainTable.clearSelection();
 							mainTable.setRowSelectionInterval(currentRecordId, currentRecordId);
 							System.out.println("DEBUG: INFO - old and new record IDs: " + oldRecordId + " -> " + currentRecordId);
 							oldRecordId = currentRecordId;
-							//updateFields(currentUser.records.get((int) currentUser.records.size() - 1));
+							currentUser.records.set(currentRecordId, enumerateSub(currentRecord));
 						} else {
 							System.out.println("DEBUG: INFO - Table is empty.");
 						}
@@ -324,25 +235,25 @@ public class RecordManagementForm {
 		paymentTypeSelection.setBounds(165, 105, 150, 25);
 		frame.getContentPane().add(paymentTypeSelection);
 		
-		btnInsert = new JButton("Insert Record");
-		btnInsert.setBounds(5, 410, 150, 25);
-		frame.getContentPane().add(btnInsert);
-		btnInsert.addActionListener(new ActionListener() {
+		mainInsert = new JButton("Insert Record");
+		mainInsert.setBounds(5, 410, 150, 25);
+		frame.getContentPane().add(mainInsert);
+		mainInsert.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				idRange.setMaximum(idMax++);
 				System.out.println("DEBUG: INFO - IdSpinner Range [" + idRange.getMinimum().toString() + ":" + idRange.getMaximum().toString()+ "]");
-				toggleButtons();
+				enableMain();
 				currentRecord = packRecord();
 				currentUser.records.add(currentRecord);
-				model.addRow(currentRecord.getRecord());
+				mainModel.addRow(currentRecord.getRecord());
 				idSpinner.setValue(idRange.getMaximum());
 			}
 		});
 		
-		btnDelete = new JButton("Delete Record");
-		btnDelete.setBounds(165, 410, 150, 25);
-		frame.getContentPane().add(btnDelete);
-		btnDelete.addActionListener(new ActionListener() {
+		mainDelete = new JButton("Delete Record");
+		mainDelete.setBounds(165, 410, 150, 25);
+		frame.getContentPane().add(mainDelete);
+		mainDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				deleteInProgress = true;
 				if(idMax-- < 0)
@@ -351,23 +262,23 @@ public class RecordManagementForm {
 				System.out.println("DEBUG - INFO: IdSpinner Range [" + idRange.getMinimum().toString() + ":" + idRange.getMaximum().toString()+ "]");
 				
 				if(currentUser.records.size() > 0) {
-					int[] ids = mainTable.getSelectedRows();
+					int mainAt = mainTable.getSelectedRow();
 					if(mainTable.getSelectedColumnCount()!=0) {
 						Object[] options = {"Confirm Deletion","Keep Records"};
-						int confirmation = JOptionPane.showOptionDialog(frame, "Are you sure you want to delete the records [" + Integer.toString(ids[0]) + ":" + Integer.toString(ids[ids.length-1]) + "]", "Discard Changes?", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+						int confirmation = JOptionPane.showOptionDialog(frame, "Are you sure you want to delete record [" + Integer.toString(mainAt) + "]", "Discard Changes?", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
 						if(confirmation == 0) {
-							for (int id=0; id < ids.length ; id++) {
-								System.out.println("Processing Id: " + ids[0]);
-								model.removeRow(ids[0]);
-						    	currentUser.records.remove(ids[0]);
-							}
+							System.out.println("Processing Id: " + mainAt);
+							mainModel.removeRow(mainAt);
+							currentUser.records.remove(mainAt);
 						}
 						if(currentUser.records.size()!=0) {
+							oldRecordId--; // Important for change tracking
 							idSpinner.setValue(idRange.getMaximum());
-							mainTable.clearSelection();
-							mainTable.setRowSelectionInterval(0,0);
+							mainAt = mainAt==0 ? 1 : mainAt;
+							mainTable.setRowSelectionInterval(mainAt-1,mainAt-1);
+							updateFields(currentUser.records.get(mainAt-1));
 						} else {
-							toggleButtons();
+							disableMain();
 						}
 					} else {
 						JOptionPane.showMessageDialog(frame, "Please select records to delete!");
@@ -377,10 +288,10 @@ public class RecordManagementForm {
 			}
 		});
 		
-		btnSave = new JButton("Apply changes");
-		btnSave.setBounds(5, 437, 150, 25);
-		frame.getContentPane().add(btnSave);
-		btnSave.addActionListener(new ActionListener() {
+		mainSave = new JButton("Apply Changes");
+		mainSave.setBounds(5, 437, 150, 25);
+		frame.getContentPane().add(mainSave);
+		mainSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				currentRecordId = (int) idSpinner.getValue();
 				currentRecord = packRecord();
@@ -388,10 +299,10 @@ public class RecordManagementForm {
 			}
 		});
 		
-		btnDiscard = new JButton("Discard changes");
-		btnDiscard.setBounds(165, 437, 150, 25);
-		frame.getContentPane().add(btnDiscard);
-		btnDiscard.addActionListener(new ActionListener() {
+		mainDiscard = new JButton("Cancel changes");
+		mainDiscard.setBounds(165, 437, 150, 25);
+		frame.getContentPane().add(mainDiscard);
+		mainDiscard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				currentRecordId = (int) idSpinner.getValue();
 				currentRecord = currentUser.records.get(currentRecordId);
@@ -408,14 +319,191 @@ public class RecordManagementForm {
 				paidDateSpinner.setEnabled(paidTick.isSelected());
 			}
 		});
+		
+		subInsert = new JButton("Insert Sub Record");
+		subInsert.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				currentRecordId = (int) idSpinner.getValue();
+				currentRecord = currentUser.records.get(currentRecordId);
+				packedRecord = packRecord();
+				if(!packedRecord.getExpenseType().equals(ExpenseRecord.expenseTypeE.Composite)) {
+					currentRecord.addSubRecord(packedRecord);
+				} else {
+					JOptionPane.showMessageDialog(frame, "Change record type. Composite is not allowed here", "Composite not allowed here.", JOptionPane.ERROR_MESSAGE);
+				}
+				currentUser.records.set(currentRecordId, enumerateSub(currentRecord));
+			}
+		});
+		subInsert.setBounds(343, 360, 150, 25);
+		frame.getContentPane().add(subInsert);
+		
+		subSave = new JButton("Apply Sub Changes");
+		subSave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int subAt = subTable.getSelectedRow();
+				if(subAt != -1) {
+					int mainAt = (int) idSpinner.getValue();
+					packedRecord = packRecord();
+					currentUser.records.get(mainAt).removeSubRecord(subAt);
+					currentUser.records.get(mainAt).insertSubRecord(subAt,packedRecord);
+					subModel.removeRow(subAt);
+					subModel.insertRow(subAt,packedRecord.getRecord());
+					if(currentUser.records.get(mainAt).getSubRecordsCount() == 0) {
+						disableSub();
+					} else {
+						// Highlights next row and update fields accordingly
+						subAt = subAt == 0 ? 1 : subAt;
+						subTable.setRowSelectionInterval(subAt, subAt);
+						updateFields(currentUser.records.get(mainAt).getSubRecord(subAt));
+					}
+				}
+			}
+		});
+		subSave.setEnabled(false);
+		subSave.setBounds(343, 385, 150, 25);
+		frame.getContentPane().add(subSave);
+		
+		subDelete = new JButton("Delete Sub Record");
+		subDelete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int subAt = subTable.getSelectedRow();
+				if(subAt != -1) {
+					int mainAt = (int) idSpinner.getValue();
+					currentUser.records.get(mainAt).removeSubRecord(subAt);
+					subModel.removeRow(subAt);
+					if(currentUser.records.get(mainAt).getSubRecordsCount() == 0) {
+						disableSub();
+					} else {
+						// Highlights next row and update fields accordingly
+						subAt = subAt == 0 ? 1 : subAt;
+						subTable.setRowSelectionInterval(subAt-1, subAt-1);
+						updateFields(currentUser.records.get(mainAt).getSubRecord(subAt-1));
+					}
+				}
+			}
+		});
+		subDelete.setEnabled(false);
+		subDelete.setBounds(343, 410, 150, 25);
+		frame.getContentPane().add(subDelete);
+		
+		subDiscard = new JButton("Cancel Sub Changes");
+		subDiscard.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int subAt = subTable.getSelectedRow();
+				if(subAt != -1) {
+					int mainAt = (int) idSpinner.getValue();
+					currentRecord = currentUser.records.get(mainAt).getSubRecord(subAt);
+					updateFields(currentRecord);
+				}
+			}
+		});
+		subDiscard.setEnabled(false);
+		subDiscard.setBounds(343, 435, 150, 25);
+		frame.getContentPane().add(subDiscard);
+				
+		mainModel = new DefaultTableModel(ExpenseRecord.recordFieldStrings,0) {
+			// Makes the table read-only
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isCellEditable(int row, int column) {return false;}
+		};
+		
+		mainTable = new JTable(mainModel);
+		mainTable.setBounds(384, 32, 1186, 509);
+		mainTable.setRowSelectionAllowed(true);
+		mainTable.setAutoCreateRowSorter(true); //Vlad - this line enables sorting by clicking headers
+		mainTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		mainTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				wasIn = nowIn; nowIn = true; // Registers where is the click coming from
+				int mainAt = mainTable.getSelectedRow();
+				if(mainAt != -1) {
+					idSpinner.setValue(mainAt);
+					currentRecord = currentUser.records.get(mainAt);
+					enableMain();					//Vlad - if a row is selected, we need to activate buttons the buttons.
+					updateFields(currentRecord);	//Vlad - if a row is selected, [BQ] update form fields.
+				}
+			}
+		});
+		setUpColumnInputModels();				//Apply controls to the table
+
+		mainPane = new JScrollPane();
+		hideSub();		//mainPane.setBounds(343, 32, 933, 430);
+		mainPane.setViewportView(mainTable);
+		frame.getContentPane().add(mainPane);
+		
+		subModel = new DefaultTableModel(ExpenseRecord.recordFieldStrings,0) {
+			// Makes the table read-only
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isCellEditable(int row, int column) {return false;}
+		};
+		
+		subTable = new JTable(subModel);
+		subTable.setRowSelectionAllowed(true);
+		subTable.setAutoCreateRowSorter(true);
+		subTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		subTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				wasIn = nowIn; nowIn = false; // Registers where is the click coming from
+				int subAt = subTable.getSelectedRow();
+				if(subAt != -1) {
+					int mainAt = (int) idSpinner.getValue();
+					currentRecord = currentUser.records.get(mainAt).getSubRecord(subAt);
+					enableSub();					//Vlad - if a row is selected, we need to activate buttons the buttons.
+					updateFields(currentRecord);	//Vlad - if a row is selected, [BQ] update form fields.
+				}
+			}
+		});
+		
+		subPane = new JScrollPane();
+		subPane.setBounds(505, 327, 771, 133);
+		subPane.setViewportView(subTable);
+		frame.getContentPane().add(subPane);
+		
+		//Vlad - checkbox to show and hide paid expenses
+		showMainPaid = new JCheckBox("Show paid only");
+		showMainPaid.setSelected(false);
+		showMainPaid.setBounds(343, 7, 200, 23);
+		showMainPaid.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				TableRowSorter<TableModel> sorter = new TableRowSorter<>(mainTable.getModel());
+				if (showMainPaid.isSelected()) {
+					sorter.setRowFilter(RowFilter.regexFilter("true"));
+				} else {
+					sorter.setRowFilter(RowFilter.regexFilter("[truefalse]"));
+				}
+				mainTable.setRowSorter(sorter);
+			}
+		});
+		frame.getContentPane().add(showMainPaid);
+		
+		showSubPaid = new JCheckBox("Show sub paid only");
+		showSubPaid.setSelected(false);
+		showSubPaid.setBounds(343, 335, 150, 23);
+		showSubPaid.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				TableRowSorter<TableModel> sorter = new TableRowSorter<>(subTable.getModel());
+				if (showSubPaid.isSelected()) {
+					sorter.setRowFilter(RowFilter.regexFilter("true"));
+				} else {
+					sorter.setRowFilter(RowFilter.regexFilter("[truefalse]"));
+				}
+				subTable.setRowSorter(sorter);
+			}
+		});
+		frame.getContentPane().add(showSubPaid);
+		
 	}
 	
 	private void updateFields(ExpenseRecord record) {
 		amountText.setText(Double.toString(record.getAmount()));
 		paidTick.setSelected(record.getPaid());
-		paymentTypeSelection.setSelectedIndex(record.getpaymentType().ordinal());
-		expenseTypeSelection.setSelectedItem(record.getExpenseType().ordinal());
-		repetitionIntervalSelection.setSelectedItem(record.getRepetitionInterval().ordinal());
+		paymentTypeSelection.setSelectedIndex(record.getPaymentType().ordinal());
+		expenseTypeSelection.setSelectedIndex(record.getExpenseType().ordinal());
+		repetitionIntervalSelection.setSelectedIndex(record.getRepetitionInterval().ordinal());
 		retailerNameText.setText(record.getRetailerName());
 		retailerLocationText.setText(record.getRetailerLocation());
 		operationDateSpinner.setValue(toDate(record.getOperationDate()));
@@ -444,60 +532,130 @@ public class RecordManagementForm {
 	
 	private void applyChanges(User currentUser, ExpenseRecord targetRecord, int targetId) {
 		currentUser.records.remove(targetId);
-		model.removeRow(targetId);
 		currentUser.records.add(targetId, targetRecord);
-		model.insertRow(targetId, targetRecord.getRecord());
-		mainTable.clearSelection();
+		mainModel.removeRow(targetId);
+		mainModel.insertRow(targetId, targetRecord.getRecord());
 		mainTable.setRowSelectionInterval(targetId, targetId);
+		updateFields(targetRecord);
 	}
 	
 	private void compareDiscardOrApply(User currentUser, int currentRecordId, ExpenseRecord currentRecord, ExpenseRecord packedRecord) {
-		boolean comparisonResult = !Arrays.equals(currentRecord.getRecord(), packedRecord.getRecord());
-		if (comparisonResult){
-		    Object[] options = {"Discard Changes","Apply Changes"};
-		    if(JOptionPane.showOptionDialog(frame, "Apply changes?", "Confirmation", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
-		    	applyChanges(currentUser,packedRecord,currentRecordId);
-		    else
-		    	updateFields(currentRecord);
+		if(wasIn==nowIn | currentRecord.getExpenseType().equals(expenseTypeE.Composite)) {
+			boolean comparisonResult = !Arrays.equals(currentRecord.getRecord(), packedRecord.getRecord());
+			if (comparisonResult){
+				Object[] options = {"Discard Changes","Apply Changes"};
+				if(JOptionPane.showOptionDialog(frame, "Apply changes?", "Confirmation", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
+					applyChanges(currentUser,packedRecord,currentRecordId);
+				else
+					updateFields(currentRecord);
+			}
 		}
 	}
 	
-    private void setUpColumnInputModels() {
+	private void setUpColumnInputModels() {
 /*<== multi-line tag starting from here for proper access to Design view, just delete '//'
-    	TableColumn paidCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.paid.ordinal());
-    	TableColumn expenseTypeCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.expenseType.ordinal());
-    	TableColumn repetitionIntervalCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.repetitionInterval.ordinal());
-    	TableColumn paymentTypeCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.paymentType.ordinal());
+		TableColumn paidCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.paid.ordinal());
+		TableColumn expenseTypeCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.expenseType.ordinal());
+		TableColumn repetitionIntervalCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.repetitionInterval.ordinal());
+		TableColumn paymentTypeCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.paymentType.ordinal());
 
-    	//Set up the editors for the designated columns.
-    	JCheckBox paidCheck = new JCheckBox();
-    	JComboBox<expenseTypeE> expenseTypeCombo = new JComboBox<expenseTypeE>(new expenseTypeE[] {expenseTypeE.Purchase,expenseTypeE.Bill});
-    	JComboBox<repetitionIntervalE> repetitionIntervalCombo = new JComboBox<repetitionIntervalE>(new repetitionIntervalE[] {repetitionIntervalE.Once,repetitionIntervalE.Day,repetitionIntervalE.Bidaily,repetitionIntervalE.Weekly,repetitionIntervalE.Biweekly,repetitionIntervalE.Monthly,repetitionIntervalE.Yearly});
-    	JComboBox<paymentTypeE>paymentTypeCombo = new JComboBox<paymentTypeE>(new paymentTypeE[] {paymentTypeE.paidByCash,paymentTypeE.paidByDebit, paymentTypeE.dueByCredit});
-    	
-    	paidCol.setCellEditor(new DefaultCellEditor(paidCheck));
-    	expenseTypeCol.setCellEditor(new DefaultCellEditor(expenseTypeCombo));
-    	repetitionIntervalCol.setCellEditor(new DefaultCellEditor(repetitionIntervalCombo));
-    	paymentTypeCol.setCellEditor(new DefaultCellEditor(paymentTypeCombo));
-    	
-    	paidCol.setCellRenderer(new DefaultTableCellRenderer());
-    	expenseTypeCol.setCellRenderer(new DefaultTableCellRenderer());
-    	repetitionIntervalCol.setCellRenderer(new DefaultTableCellRenderer());
-    	paymentTypeCol.setCellRenderer(new DefaultTableCellRenderer());
-//<== multi-line tag ending to here for proper Design view */
-    }
-    public LocalDate toLocalDate(Date input) {return input.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();}
-    private Date toDate(LocalDate input) {return Date.from(input.atStartOfDay(ZoneId.systemDefault()).toInstant());}
-    private void toggleButtons(){
-    	toggleCounter++;
-    	if (toggleCounter % 2 == 0) {
-			btnSave.setEnabled(false);
-			btnDelete.setEnabled(false);
-			btnDiscard.setEnabled(false);
-    	} else {
-			btnSave.setEnabled(true);
-			btnDelete.setEnabled(true);
-			btnDiscard.setEnabled(true);
-    	}
-    }
+		//Set up the editors for the designated columns.
+		JCheckBox paidCheck = new JCheckBox();
+		JComboBox<expenseTypeE> expenseTypeCombo = new JComboBox<expenseTypeE>(new expenseTypeE[] {expenseTypeE.Purchase,expenseTypeE.Bill});
+		JComboBox<repetitionIntervalE> repetitionIntervalCombo = new JComboBox<repetitionIntervalE>(new repetitionIntervalE[] {repetitionIntervalE.Once,repetitionIntervalE.Day,repetitionIntervalE.Bidaily,repetitionIntervalE.Weekly,repetitionIntervalE.Biweekly,repetitionIntervalE.Monthly,repetitionIntervalE.Yearly});
+		JComboBox<paymentTypeE>paymentTypeCombo = new JComboBox<paymentTypeE>(new paymentTypeE[] {paymentTypeE.paidByCash,paymentTypeE.paidByDebit, paymentTypeE.dueByCredit});
+		
+		paidCol.setCellEditor(new DefaultCellEditor(paidCheck));
+		expenseTypeCol.setCellEditor(new DefaultCellEditor(expenseTypeCombo));
+		repetitionIntervalCol.setCellEditor(new DefaultCellEditor(repetitionIntervalCombo));
+		paymentTypeCol.setCellEditor(new DefaultCellEditor(paymentTypeCombo));
+		
+		paidCol.setCellRenderer(new DefaultTableCellRenderer());
+		expenseTypeCol.setCellRenderer(new DefaultTableCellRenderer());
+		repetitionIntervalCol.setCellRenderer(new DefaultTableCellRenderer());
+		paymentTypeCol.setCellRenderer(new DefaultTableCellRenderer());
+//<== multiple-line tag ending to here for proper Design view */
+	}
+	
+	public LocalDate toLocalDate(Date input) {return input.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();}
+	private Date toDate(LocalDate input) {return Date.from(input.atStartOfDay(ZoneId.systemDefault()).toInstant());}
+
+	private void enableMain() {
+		mainSave.setEnabled(true);
+		mainDelete.setEnabled(true);
+		mainDiscard.setEnabled(true);
+	}
+	
+	private void disableMain() {
+		mainSave.setEnabled(false);
+		mainDelete.setEnabled(false);
+		mainDiscard.setEnabled(false);		
+	}
+	
+	private void enableSub() {
+		subSave.setEnabled(true);
+		subDelete.setEnabled(true);
+		subDiscard.setEnabled(true);
+	}
+
+	private void disableSub() {
+		subSave.setEnabled(false);
+		subDelete.setEnabled(false);
+		subDiscard.setEnabled(false);		
+	}
+	
+	private void showSub() {
+		mainPane.setBounds(343, 32, 933, 283);
+		subInsert.setVisible(true);
+		subSave.setVisible(true);
+		subDelete.setVisible(true);
+		subDiscard.setVisible(true);
+		enableSub();
+	}
+	
+	private void hideSub() {
+		mainPane.setBounds(343, 32, 933, 430);
+		subInsert.setVisible(false);
+		subSave.setVisible(false);
+		subDelete.setVisible(false);
+		subDiscard.setVisible(false);
+		disableSub();
+	}
+	
+	private void enumerateMain(User currentUser) {
+		for(int i=0; i<currentUser.records.size(); i++)
+			mainModel.addRow(currentUser.records.get(i).getRecord());
+	}
+	
+	private ExpenseRecord enumerateSub(ExpenseRecord currentRecord) {
+		currentRecord = validateSub(currentRecord);
+		int subRecordsCount = currentRecord.getSubRecordsCount();
+		if(currentRecord.getExpenseType().equals(expenseTypeE.Composite)) {
+			showSub();
+			if(subRecordsCount==0)
+				disableSub();
+			else
+				enableSub();
+			int modelRows = subModel.getRowCount(); for(int i=0; i<modelRows; i++) {subModel.removeRow(0);} // Removes old values
+			for(int i=0; i<subRecordsCount; i++) {subModel.addRow(currentRecord.getSubRecord(i).getRecord());} // Inserts new ones and updates master field
+		} else {
+			hideSub();
+		}
+		return currentRecord;
+	}
+	
+	private ExpenseRecord validateSub(ExpenseRecord currentRecord) {
+		double subAmount = 0; boolean subPaid = true;
+		int subRecordsCount = currentRecord.getSubRecordsCount();
+		for(int i=0; i<subRecordsCount; i++) {
+			ExpenseRecord currentSubRecord = currentRecord.getSubRecord(i); 
+			subAmount += currentSubRecord.getAmount();
+			subPaid &= currentSubRecord.getPaid();
+			subModel.addRow(currentSubRecord.getRecord());
+		}
+		currentRecord.setAmount(subAmount);
+		currentRecord.setPaid(subPaid);
+		
+		return currentRecord; 
+	}
 }
