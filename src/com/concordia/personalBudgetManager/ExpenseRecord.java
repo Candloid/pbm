@@ -68,7 +68,7 @@ public class ExpenseRecord {
 	public LocalDate getOperationDate(){return this.operationDate;}
 	public String getOtherDetails(){return this.otherDetails;}
 	public Object[] getRecord() {return this.record;}
-	public ExpenseRecord getSubRecord(int id) {return this.subRecords.get(id);}
+	public ExpenseRecord getSubRecord(int recordId) {return this.subRecords.get(recordId);}
 	public int getSubRecordsCount() {return this.subRecords.size();}
 	
 	public void setAmount(double amount) {this.amount=amount;}
@@ -82,9 +82,19 @@ public class ExpenseRecord {
 	public void setOperationDate(LocalDate operationDate){this.operationDate=operationDate;}	
 	public void setOtherDetails(String otherDetails){this.otherDetails=otherDetails;}
 	public void setRecord(Object[] record) {this.record=record;}
-	public void insertSubRecord(int recordId, Object[] someRecord) {this.subRecords.add(recordId, new ExpenseRecord(someRecord));}
-	public void insertSubRecord(int recordId, ExpenseRecord someRecord) {this.subRecords.add(recordId, someRecord);}
-	public void addSubRecord(Object[] someRecord) {this.subRecords.add(new ExpenseRecord(someRecord));}
-	public void addSubRecord(ExpenseRecord someRecord) {this.subRecords.add(someRecord);}
-	public void removeSubRecord(int id) {this.subRecords.remove(id);}
+	public void insertSubRecord(int recordId, Object[] someRecord) {this.subRecords.add(recordId, new ExpenseRecord(someRecord));validateMaster();}
+	public void insertSubRecord(int recordId, ExpenseRecord someRecord) {this.subRecords.add(recordId, someRecord);validateMaster();}
+	public void addSubRecord(Object[] someRecord) {this.subRecords.add(new ExpenseRecord(someRecord));validateMaster();}
+	public void addSubRecord(ExpenseRecord someRecord) {this.subRecords.add(someRecord);validateMaster();}
+	public void removeSubRecord(int recordId) {this.subRecords.remove(recordId);validateMaster();}
+	
+	public void validateMaster() {
+		double sumAmount=0.0; boolean sumPaid=true;
+		for(int i=0; i<this.getSubRecordsCount(); i++) {
+			sumAmount += subRecords.get(i).amount;
+			sumPaid &= subRecords.get(i).paid;
+		}
+		this.amount=sumAmount; this.record[recordFieldE.amount.ordinal()]=sumAmount;
+		this.paid=sumPaid; this.record[recordFieldE.paid.ordinal()]=sumPaid;
+	}
 }

@@ -1,12 +1,10 @@
 package com.concordia.personalBudgetManager;
 
 import java.awt.Container;
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Date;
 
 import javax.swing.DefaultComboBoxModel;
@@ -36,16 +34,17 @@ import javax.swing.table.TableRowSorter;
 
 import com.concordia.personalBudgetManager.ExpenseRecord.expenseTypeE;
 import com.concordia.personalBudgetManager.ExpenseRecord.paymentTypeE;
+import com.concordia.personalBudgetManager.ExpenseRecord.recordFieldE;
 import com.concordia.personalBudgetManager.ExpenseRecord.repetitionIntervalE;
 
 public class RecordManagementForm {
 	
 	private ExpenseRecord currentRecord, packedRecord;
-	int currentRecordId, oldRecordId=0;
-	boolean firstRun = true, deleteInProgress = false, wasIn = true, nowIn = true;
+	private int currentRecordId, oldRecordId=0;
+	private boolean deleteInProgress = false, nowIn = true, wasIn = true; 
 
-	private RecordManagementForm window;
 	private JFrame frame;
+	private User currentUser;
 	private JTable mainTable, subTable;
 	private DefaultTableModel mainModel, subModel;
 
@@ -65,21 +64,21 @@ public class RecordManagementForm {
 	private JButton mainInsert, mainDelete, mainSave, mainDiscard;
 	private JButton subInsert, subSave, subDelete, subDiscard;
 	
-	// Launch the application
-	public void loadForm(User currentUser) {
-		// Set the "look and feel" of the form as Nimbus
+	// Create the application.
+	public RecordManagementForm(User parsedUser) {
+		currentUser = parsedUser;
+		parsedUser = null;
 		this.setLookAndFeel("Nimbus");
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					window = new RecordManagementForm(currentUser);
-					window.frame.setVisible(true);
-					frame.getContentPane().setLayout(null);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		initialize();
+		enumerateMain();
+		//frame.getContentPane().setLayout(null);
+		frame.setVisible(true);
+		amountText.setText("0.0");
+		if(currentUser.records.size()!=0) {
+			mainTable.setRowSelectionInterval(0, 0);			
+		} else {			
+			disableMain();
+		}
 	}
 	
 	// Set the "look and feel" of the form
@@ -90,6 +89,7 @@ public class RecordManagementForm {
 					UIManager.setLookAndFeel(info.getClassName());
 					break;
 				}
+				UIManager.setLookAndFeel(info.getClassName()); // Set theme to last available theme
 			}
 		} catch (Exception e) {
 			System.out.println("DEBUG: ERROR - [" + themeName + "] theme is not available");
@@ -97,17 +97,7 @@ public class RecordManagementForm {
 		}
 	}
 
-	// Create the application.
-	public RecordManagementForm(User currentUser) {
-		initialize(currentUser);
-		enumerateMain(currentUser);
-		
-		amountText.setText("0.0");
-		mainTable.setRowSelectionInterval(0, 0);
-		disableMain();
-	}
-	
-	private void initialize(User currentUser) {
+	private void initialize() {
 		frame = new JFrame();
 		frame.setTitle("[" + currentUser.name + "] expense records");
 		frame.setBounds(100, 100, 1300, 520);
@@ -187,7 +177,7 @@ public class RecordManagementForm {
 							mainTable.setRowSelectionInterval(currentRecordId, currentRecordId);
 							System.out.println("DEBUG: INFO - old and new record IDs: " + oldRecordId + " -> " + currentRecordId);
 							oldRecordId = currentRecordId;
-							currentUser.records.set(currentRecordId, enumerateSub(currentRecord));
+							enumerateSub(currentRecord);
 						} else {
 							System.out.println("DEBUG: INFO - Table is empty.");
 						}
@@ -331,7 +321,8 @@ public class RecordManagementForm {
 				} else {
 					JOptionPane.showMessageDialog(frame, "Change record type. Composite is not allowed here", "Composite not allowed here.", JOptionPane.ERROR_MESSAGE);
 				}
-				currentUser.records.set(currentRecordId, enumerateSub(currentRecord));
+				enumerateSub(currentRecord);
+				updateMainModel(currentRecordId);
 			}
 		});
 		subInsert.setBounds(343, 360, 150, 25);
@@ -341,8 +332,8 @@ public class RecordManagementForm {
 		subSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int subAt = subTable.getSelectedRow();
+				int mainAt = (int) idSpinner.getValue();
 				if(subAt != -1) {
-					int mainAt = (int) idSpinner.getValue();
 					packedRecord = packRecord();
 					currentUser.records.get(mainAt).removeSubRecord(subAt);
 					currentUser.records.get(mainAt).insertSubRecord(subAt,packedRecord);
@@ -357,6 +348,7 @@ public class RecordManagementForm {
 						updateFields(currentUser.records.get(mainAt).getSubRecord(subAt));
 					}
 				}
+				updateMainModel(mainAt);
 			}
 		});
 		subSave.setEnabled(false);
@@ -367,8 +359,8 @@ public class RecordManagementForm {
 		subDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int subAt = subTable.getSelectedRow();
+				int mainAt = (int) idSpinner.getValue();
 				if(subAt != -1) {
-					int mainAt = (int) idSpinner.getValue();
 					currentUser.records.get(mainAt).removeSubRecord(subAt);
 					subModel.removeRow(subAt);
 					if(currentUser.records.get(mainAt).getSubRecordsCount() == 0) {
@@ -379,7 +371,10 @@ public class RecordManagementForm {
 						subTable.setRowSelectionInterval(subAt-1, subAt-1);
 						updateFields(currentUser.records.get(mainAt).getSubRecord(subAt-1));
 					}
+				} else {
+					JOptionPane.showMessageDialog(frame, "Please select sub records to delete!");
 				}
+				updateMainModel(mainAt);
 			}
 		});
 		subDelete.setEnabled(false);
@@ -390,11 +385,12 @@ public class RecordManagementForm {
 		subDiscard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int subAt = subTable.getSelectedRow();
+				int mainAt = (int) idSpinner.getValue();
 				if(subAt != -1) {
-					int mainAt = (int) idSpinner.getValue();
 					currentRecord = currentUser.records.get(mainAt).getSubRecord(subAt);
 					updateFields(currentRecord);
 				}
+				updateMainModel(mainAt);
 			}
 		});
 		subDiscard.setEnabled(false);
@@ -540,6 +536,7 @@ public class RecordManagementForm {
 	}
 	
 	private void compareDiscardOrApply(User currentUser, int currentRecordId, ExpenseRecord currentRecord, ExpenseRecord packedRecord) {
+		/*
 		if(wasIn==nowIn | currentRecord.getExpenseType().equals(expenseTypeE.Composite)) {
 			boolean comparisonResult = !Arrays.equals(currentRecord.getRecord(), packedRecord.getRecord());
 			if (comparisonResult){
@@ -550,6 +547,7 @@ public class RecordManagementForm {
 					updateFields(currentRecord);
 			}
 		}
+		*/
 	}
 	
 	private void setUpColumnInputModels() {
@@ -622,13 +620,12 @@ public class RecordManagementForm {
 		disableSub();
 	}
 	
-	private void enumerateMain(User currentUser) {
+	private void enumerateMain() {
 		for(int i=0; i<currentUser.records.size(); i++)
 			mainModel.addRow(currentUser.records.get(i).getRecord());
 	}
 	
-	private ExpenseRecord enumerateSub(ExpenseRecord currentRecord) {
-		currentRecord = validateSub(currentRecord);
+	private void enumerateSub(ExpenseRecord currentRecord) {
 		int subRecordsCount = currentRecord.getSubRecordsCount();
 		if(currentRecord.getExpenseType().equals(expenseTypeE.Composite)) {
 			showSub();
@@ -641,21 +638,11 @@ public class RecordManagementForm {
 		} else {
 			hideSub();
 		}
-		return currentRecord;
 	}
 	
-	private ExpenseRecord validateSub(ExpenseRecord currentRecord) {
-		double subAmount = 0; boolean subPaid = true;
-		int subRecordsCount = currentRecord.getSubRecordsCount();
-		for(int i=0; i<subRecordsCount; i++) {
-			ExpenseRecord currentSubRecord = currentRecord.getSubRecord(i); 
-			subAmount += currentSubRecord.getAmount();
-			subPaid &= currentSubRecord.getPaid();
-			subModel.addRow(currentSubRecord.getRecord());
-		}
-		currentRecord.setAmount(subAmount);
-		currentRecord.setPaid(subPaid);
-		
-		return currentRecord; 
+	private void updateMainModel(int mainAt) {
+		mainModel.setValueAt(currentUser.records.get(mainAt).getAmount(), mainAt, recordFieldE.amount.ordinal());
+		mainModel.setValueAt(currentUser.records.get(mainAt).getPaid(), mainAt, recordFieldE.paid.ordinal());
+		amountText.setText(Double.toString(currentUser.records.get(mainAt).getAmount()));
 	}
 }
