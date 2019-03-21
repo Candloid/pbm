@@ -27,6 +27,7 @@ public class User {
 							repetitionIntervalE.values()[j % repetitionIntervalE.values().length], "Retailer " + j, "Location " + j, LocalDate.now(), "Sub of " + i));
 				}
 			}
+			preloadedRecords[0].setpaymentType(paymentTypeE.paidByCash);
 			records.add(preloadedRecords[i]);
 		}
 	} //end of loading expense records

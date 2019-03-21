@@ -19,7 +19,6 @@ class ExpenseRecordTest {
     private static String Username = "Random User";
     private static User randomUser = new User(Username);
     public static RecordManagementForm userForm = new RecordManagementForm(randomUser);
-    ExpenseRecord myRecord = new ExpenseRecord(ExpenseRecord.nullRecord);
 
     public static double specificAmount = 88.88;
     public static boolean specificPaid = true;
@@ -46,12 +45,6 @@ class ExpenseRecordTest {
     public ExpenseRecord specificRecordByObject = new ExpenseRecord(specificObject);
     public ExpenseRecord specificRecordByParameters = new ExpenseRecord(specificAmount, specificPaid, specificPaymentDate, specificExpenseTypeE, specificPaymentTypeE, specificRepetitionIntervalE, specificRetailerName, specificRetailerLocation, specificOperationDate, specificDetails);
     public ExpenseRecord nullRecord = new ExpenseRecord();
-
-    // Tests the integrity of the nullRecord
-    @Test
-    void testNullRecord() {
-        assertEquals(nullRecord.getRecord(), nullRecord.nullRecord);
-    }
 
     // Tests if the constructor parses the same values for the Object[] or the parameters one-by-one in both cases
     @Test

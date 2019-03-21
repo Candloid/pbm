@@ -26,9 +26,10 @@ public class RecordManagementFormTest {
     }
 
     @Test
+    //? Ryan ?
     public void testPackRecord() {
         //when
-        ExpenseRecord expenseRecord = recordManagementForm.packRecord();
+        ExpenseRecord expenseRecord = recordManagementForm.packRecord(true);
         //then
         assertEquals(ExpenseRecord.expenseTypeE.Purchase, expenseRecord.getExpenseType());
         assertEquals(ExpenseRecord.paymentTypeE.paidByCash, expenseRecord.getPaymentType());
