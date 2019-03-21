@@ -39,9 +39,9 @@ import com.concordia.personalBudgetManager.ExpenseRecord.repetitionIntervalE;
 
 public class RecordManagementForm {
 	
-	private ExpenseRecord currentRecord, packedRecord;
+	private ExpenseRecord currentRecord, packedRecord, newRecord;
 	private int currentRecordId, oldRecordId=0;
-	private boolean deleteInProgress = false, nowIn = true, wasIn = true; 
+	private boolean deleteInProgress = false; 
 
 	private JFrame frame;
 	private User currentUser;
@@ -169,15 +169,12 @@ public class RecordManagementForm {
 						currentRecordId = oldRecordId;
 						if (currentUser.records.size()!=0){
 							currentRecord = currentUser.records.get(currentRecordId);
-							packedRecord = packRecord();
-							compareDiscardOrApply(currentUser, currentRecordId, currentRecord, packedRecord);
 							currentRecordId = (int) idSpinner.getValue();
 							currentRecord = currentUser.records.get(currentRecordId);
-							updateFields(currentRecord);
+							updateFields(currentRecord, false);
 							mainTable.setRowSelectionInterval(currentRecordId, currentRecordId);
 							System.out.println("DEBUG: INFO - old and new record IDs: " + oldRecordId + " -> " + currentRecordId);
 							oldRecordId = currentRecordId;
-							enumerateSub(currentRecord);
 						} else {
 							System.out.println("DEBUG: INFO - Table is empty.");
 						}
@@ -233,10 +230,10 @@ public class RecordManagementForm {
 				idRange.setMaximum(idMax++);
 				System.out.println("DEBUG: INFO - IdSpinner Range [" + idRange.getMinimum().toString() + ":" + idRange.getMaximum().toString()+ "]");
 				enableMain();
-				currentRecord = packRecord();
+				currentRecord = packRecord(true); // discard sub records
 				currentUser.records.add(currentRecord);
 				mainModel.addRow(currentRecord.getRecord());
-				idSpinner.setValue(idRange.getMaximum());
+				//idSpinner.setValue(idRange.getMaximum());
 			}
 		});
 		
@@ -266,7 +263,7 @@ public class RecordManagementForm {
 							idSpinner.setValue(idRange.getMaximum());
 							mainAt = mainAt==0 ? 1 : mainAt;
 							mainTable.setRowSelectionInterval(mainAt-1,mainAt-1);
-							updateFields(currentUser.records.get(mainAt-1));
+							updateFields(currentUser.records.get(mainAt-1), false);
 						} else {
 							disableMain();
 						}
@@ -284,8 +281,15 @@ public class RecordManagementForm {
 		mainSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				currentRecordId = (int) idSpinner.getValue();
-				currentRecord = packRecord();
-				applyChanges(currentUser,  currentRecord, currentRecordId);
+				currentRecord = packRecord(false);
+
+				// Apply changes //
+				currentUser.records.remove(currentRecordId);
+				currentUser.records.add(currentRecordId, currentRecord);
+				mainModel.removeRow(currentRecordId);
+				mainModel.insertRow(currentRecordId, currentRecord.getRecord());
+				mainTable.setRowSelectionInterval(currentRecordId, currentRecordId);
+				updateFields(currentRecord, false);
 			}
 		});
 		
@@ -296,8 +300,7 @@ public class RecordManagementForm {
 			public void actionPerformed(ActionEvent e) {
 				currentRecordId = (int) idSpinner.getValue();
 				currentRecord = currentUser.records.get(currentRecordId);
-				packedRecord = packRecord();
-				compareDiscardOrApply(currentUser, currentRecordId, currentRecord, packedRecord);
+				updateFields(currentRecord, false);
 			}
 		});
 		
@@ -315,7 +318,7 @@ public class RecordManagementForm {
 			public void actionPerformed(ActionEvent e) {
 				currentRecordId = (int) idSpinner.getValue();
 				currentRecord = currentUser.records.get(currentRecordId);
-				packedRecord = packRecord();
+				packedRecord = packRecord(true);
 				if(!packedRecord.getExpenseType().equals(ExpenseRecord.expenseTypeE.Composite)) {
 					currentRecord.addSubRecord(packedRecord);
 				} else {
@@ -334,7 +337,7 @@ public class RecordManagementForm {
 				int subAt = subTable.getSelectedRow();
 				int mainAt = (int) idSpinner.getValue();
 				if(subAt != -1) {
-					packedRecord = packRecord();
+					packedRecord = packRecord(true);
 					currentUser.records.get(mainAt).removeSubRecord(subAt);
 					currentUser.records.get(mainAt).insertSubRecord(subAt,packedRecord);
 					subModel.removeRow(subAt);
@@ -345,7 +348,7 @@ public class RecordManagementForm {
 						// Highlights next row and update fields accordingly
 						subAt = subAt == 0 ? 1 : subAt;
 						subTable.setRowSelectionInterval(subAt, subAt);
-						updateFields(currentUser.records.get(mainAt).getSubRecord(subAt));
+						updateFields(currentUser.records.get(mainAt).getSubRecord(subAt), true);
 					}
 				}
 				updateMainModel(mainAt);
@@ -369,7 +372,7 @@ public class RecordManagementForm {
 						// Highlights next row and update fields accordingly
 						subAt = subAt == 0 ? 1 : subAt;
 						subTable.setRowSelectionInterval(subAt-1, subAt-1);
-						updateFields(currentUser.records.get(mainAt).getSubRecord(subAt-1));
+						updateFields(currentUser.records.get(mainAt).getSubRecord(subAt-1), true);
 					}
 				} else {
 					JOptionPane.showMessageDialog(frame, "Please select sub records to delete!");
@@ -388,7 +391,7 @@ public class RecordManagementForm {
 				int mainAt = (int) idSpinner.getValue();
 				if(subAt != -1) {
 					currentRecord = currentUser.records.get(mainAt).getSubRecord(subAt);
-					updateFields(currentRecord);
+					updateFields(currentRecord, true);
 				}
 				updateMainModel(mainAt);
 			}
@@ -412,17 +415,15 @@ public class RecordManagementForm {
 		mainTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				wasIn = nowIn; nowIn = true; // Registers where is the click coming from
 				int mainAt = mainTable.getSelectedRow();
 				if(mainAt != -1) {
 					idSpinner.setValue(mainAt);
 					currentRecord = currentUser.records.get(mainAt);
-					enableMain();					//Vlad - if a row is selected, we need to activate buttons the buttons.
-					updateFields(currentRecord);	//Vlad - if a row is selected, [BQ] update form fields.
+					enableMain();						//Vlad - if a row is selected, we need to activate buttons the buttons.
+					updateFields(currentRecord, false);	//Vlad - if a row is selected, [BQ] update form fields.
 				}
 			}
 		});
-		setUpColumnInputModels();				//Apply controls to the table
 
 		mainPane = new JScrollPane();
 		hideSub();		//mainPane.setBounds(343, 32, 933, 430);
@@ -443,13 +444,12 @@ public class RecordManagementForm {
 		subTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				wasIn = nowIn; nowIn = false; // Registers where is the click coming from
 				int subAt = subTable.getSelectedRow();
 				if(subAt != -1) {
 					int mainAt = (int) idSpinner.getValue();
 					currentRecord = currentUser.records.get(mainAt).getSubRecord(subAt);
-					enableSub();					//Vlad - if a row is selected, we need to activate buttons the buttons.
-					updateFields(currentRecord);	//Vlad - if a row is selected, [BQ] update form fields.
+					enableSub();						//Vlad - if a row is selected, we need to activate buttons the buttons.
+					updateFields(currentRecord, true);	//Vlad - if a row is selected, [BQ] update form fields.
 				}
 			}
 		});
@@ -494,7 +494,7 @@ public class RecordManagementForm {
 		
 	}
 	
-	private void updateFields(ExpenseRecord record) {
+	private void updateFields(ExpenseRecord record, boolean isSubRecord) {
 		amountText.setText(Double.toString(record.getAmount()));
 		paidTick.setSelected(record.getPaid());
 		paymentTypeSelection.setSelectedIndex(record.getPaymentType().ordinal());
@@ -505,14 +505,14 @@ public class RecordManagementForm {
 		operationDateSpinner.setValue(toDate(record.getOperationDate()));
 		paidDateSpinner.setValue(toDate(record.getPaidDate()));
 		otherDetailsText.setText(record.getOtherDetails());
+		if(!isSubRecord)
+			enumerateSub(record);
 	}
 	
-	// Creates a record from the form
-	public ExpenseRecord packRecord() {
-		/*{"Amount", "Paid", "Paid Date", "Expense Type", "Status Description",
-		"Repetition Interval", "Retailer Name","Retailer Location","Operation Date",
-		"Other Details"};*/
-		Object[] formPackedRecord = {Double.parseDouble(amountText.getText()),
+	public ExpenseRecord packRecord(boolean isSubRecord) {
+		// Creates a record from the form
+		Object[] formPackedRecord = {
+				Double.parseDouble(amountText.getText()),
 				paidTick.isSelected(),
 				toLocalDate((Date) paidDateSpinner.getValue()),
 				(expenseTypeE) expenseTypeSelection.getSelectedItem(),
@@ -523,58 +523,22 @@ public class RecordManagementForm {
 				toLocalDate((Date) operationDateSpinner.getValue()),
 				otherDetailsText.getText()
 		};
-		return new ExpenseRecord(formPackedRecord);
-	}
-	
-	private void applyChanges(User currentUser, ExpenseRecord targetRecord, int targetId) {
-		currentUser.records.remove(targetId);
-		currentUser.records.add(targetId, targetRecord);
-		mainModel.removeRow(targetId);
-		mainModel.insertRow(targetId, targetRecord.getRecord());
-		mainTable.setRowSelectionInterval(targetId, targetId);
-		updateFields(targetRecord);
-	}
-	
-	private void compareDiscardOrApply(User currentUser, int currentRecordId, ExpenseRecord currentRecord, ExpenseRecord packedRecord) {
-		/*
-		if(wasIn==nowIn | currentRecord.getExpenseType().equals(expenseTypeE.Composite)) {
-			boolean comparisonResult = !Arrays.equals(currentRecord.getRecord(), packedRecord.getRecord());
-			if (comparisonResult){
-				Object[] options = {"Discard Changes","Apply Changes"};
-				if(JOptionPane.showOptionDialog(frame, "Apply changes?", "Confirmation", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]) == 1)
-					applyChanges(currentUser,packedRecord,currentRecordId);
-				else
-					updateFields(currentRecord);
+		currentRecordId = (int) idSpinner.getValue();
+		newRecord = new ExpenseRecord(formPackedRecord);
+		if(!isSubRecord) {
+			//Rebuilds the subRecords for the new object
+			int subRecordsCount = currentUser.records.get(currentRecordId).getSubRecordsCount();
+			for(int subRecordId = 0; subRecordId < subRecordsCount; subRecordId++) {
+				ExpenseRecord subRecord = currentUser.records.get(currentRecordId).getSubRecord(0);
+				subRecord.setPaid((boolean)formPackedRecord[recordFieldE.paid.ordinal()]);
+				subRecord.setPaidDate((LocalDate)formPackedRecord[recordFieldE.paidDate.ordinal()]);
+				newRecord.addSubRecord(subRecord);
+				currentUser.records.get(currentRecordId).removeSubRecord(0);
 			}
 		}
-		*/
+		return newRecord;
 	}
-	
-	private void setUpColumnInputModels() {
-/*<== multi-line tag starting from here for proper access to Design view, just delete '//'
-		TableColumn paidCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.paid.ordinal());
-		TableColumn expenseTypeCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.expenseType.ordinal());
-		TableColumn repetitionIntervalCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.repetitionInterval.ordinal());
-		TableColumn paymentTypeCol = mainTable.getColumnModel().getColumn(ExpenseRecord.recordFieldE.paymentType.ordinal());
-
-		//Set up the editors for the designated columns.
-		JCheckBox paidCheck = new JCheckBox();
-		JComboBox<expenseTypeE> expenseTypeCombo = new JComboBox<expenseTypeE>(new expenseTypeE[] {expenseTypeE.Purchase,expenseTypeE.Bill});
-		JComboBox<repetitionIntervalE> repetitionIntervalCombo = new JComboBox<repetitionIntervalE>(new repetitionIntervalE[] {repetitionIntervalE.Once,repetitionIntervalE.Day,repetitionIntervalE.Bidaily,repetitionIntervalE.Weekly,repetitionIntervalE.Biweekly,repetitionIntervalE.Monthly,repetitionIntervalE.Yearly});
-		JComboBox<paymentTypeE>paymentTypeCombo = new JComboBox<paymentTypeE>(new paymentTypeE[] {paymentTypeE.paidByCash,paymentTypeE.paidByDebit, paymentTypeE.dueByCredit});
-		
-		paidCol.setCellEditor(new DefaultCellEditor(paidCheck));
-		expenseTypeCol.setCellEditor(new DefaultCellEditor(expenseTypeCombo));
-		repetitionIntervalCol.setCellEditor(new DefaultCellEditor(repetitionIntervalCombo));
-		paymentTypeCol.setCellEditor(new DefaultCellEditor(paymentTypeCombo));
-		
-		paidCol.setCellRenderer(new DefaultTableCellRenderer());
-		expenseTypeCol.setCellRenderer(new DefaultTableCellRenderer());
-		repetitionIntervalCol.setCellRenderer(new DefaultTableCellRenderer());
-		paymentTypeCol.setCellRenderer(new DefaultTableCellRenderer());
-//<== multiple-line tag ending to here for proper Design view */
-	}
-	
+				
 	public LocalDate toLocalDate(Date input) {return input.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();}
 	private Date toDate(LocalDate input) {return Date.from(input.atStartOfDay(ZoneId.systemDefault()).toInstant());}
 
@@ -621,6 +585,7 @@ public class RecordManagementForm {
 	}
 	
 	private void enumerateMain() {
+		idRange.setMinimum(0); idRange.setMaximum(currentUser.records.size()-1);
 		for(int i=0; i<currentUser.records.size(); i++)
 			mainModel.addRow(currentUser.records.get(i).getRecord());
 	}
@@ -643,6 +608,6 @@ public class RecordManagementForm {
 	private void updateMainModel(int mainAt) {
 		mainModel.setValueAt(currentUser.records.get(mainAt).getAmount(), mainAt, recordFieldE.amount.ordinal());
 		mainModel.setValueAt(currentUser.records.get(mainAt).getPaid(), mainAt, recordFieldE.paid.ordinal());
-		amountText.setText(Double.toString(currentUser.records.get(mainAt).getAmount()));
+		//amountText.setText(Double.toString(currentUser.records.get(mainAt).getAmount()));
 	}
 }
