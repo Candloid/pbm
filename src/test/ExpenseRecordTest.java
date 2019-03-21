@@ -66,7 +66,7 @@ class ExpenseRecordTest {
         assertEquals(specificRecordByObject.getPaid(), specificPaid);
         assertEquals(specificRecordByObject.getPaidDate(), specificPaymentDate);
         assertEquals(specificRecordByObject.getExpenseType(), specificExpenseTypeE);
-        assertEquals(specificRecordByObject.getpaymentType(), specificPaymentTypeE);
+        assertEquals(specificRecordByObject.getPaymentType(), specificPaymentTypeE);
         assertEquals(specificRecordByObject.getRepetitionInterval(), specificRepetitionIntervalE);
         assertEquals(specificRecordByObject.getRetailerLocation(), specificRetailerLocation);
         assertEquals(specificRecordByObject.getRetailerName(), specificRetailerName);
@@ -81,7 +81,7 @@ class ExpenseRecordTest {
         assertEquals(specificRecordByParameters.getPaid(), specificPaid);
         assertEquals(specificRecordByParameters.getPaidDate(), specificPaymentDate);
         assertEquals(specificRecordByParameters.getExpenseType(), specificExpenseTypeE);
-        assertEquals(specificRecordByParameters.getpaymentType(), specificPaymentTypeE);
+        assertEquals(specificRecordByParameters.getPaymentType(), specificPaymentTypeE);
         assertEquals(specificRecordByParameters.getRepetitionInterval(), specificRepetitionIntervalE);
         assertEquals(specificRecordByParameters.getRetailerLocation(), specificRetailerLocation);
         assertEquals(specificRecordByParameters.getRetailerName(), specificRetailerName);

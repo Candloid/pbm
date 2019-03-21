@@ -31,7 +31,7 @@ public class RecordManagementFormTest {
         ExpenseRecord expenseRecord = recordManagementForm.packRecord();
         //then
         assertEquals(ExpenseRecord.expenseTypeE.Purchase, expenseRecord.getExpenseType());
-        assertEquals(ExpenseRecord.paymentTypeE.paidByCash, expenseRecord.getpaymentType());
+        assertEquals(ExpenseRecord.paymentTypeE.paidByCash, expenseRecord.getPaymentType());
         assertEquals(ExpenseRecord.repetitionIntervalE.Once, expenseRecord.getRepetitionInterval());
 
     }
