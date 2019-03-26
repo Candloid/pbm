@@ -284,8 +284,7 @@ public class RecordManagementForm {
 				currentRecord = packRecord(false);
 
 				// Apply changes //
-				currentUser.records.remove(currentRecordId);
-				currentUser.records.add(currentRecordId, currentRecord);
+				currentUser.records.set(currentRecordId, currentRecord);
 				mainModel.removeRow(currentRecordId);
 				mainModel.insertRow(currentRecordId, currentRecord.getRecord());
 				mainTable.setRowSelectionInterval(currentRecordId, currentRecordId);
