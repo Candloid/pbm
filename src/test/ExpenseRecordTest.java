@@ -19,6 +19,7 @@ class ExpenseRecordTest {
     private static String Username = "Random User";
     private static User randomUser = new User(Username);
     public static RecordManagementForm userForm = new RecordManagementForm(randomUser);
+    ExpenseRecord expenseRecord = new ExpenseRecord();
 
     public static double specificAmount = 88.88;
     public static boolean specificPaid = true;
@@ -85,7 +86,6 @@ class ExpenseRecordTest {
     @Test
     void testGetAmount() {
         //GIVEN
-        ExpenseRecord expenseRecord = new ExpenseRecord();
         expenseRecord.setAmount(23d);
         //WHEN
         double actualAmount = expenseRecord.getAmount();
@@ -98,7 +98,6 @@ class ExpenseRecordTest {
     @Test
     void testGetPaid() {
         //GIVEN
-        ExpenseRecord expenseRecord = new ExpenseRecord();
         expenseRecord.setPaid(true);
         //WHEN
         boolean actualIsPaid = expenseRecord.getPaid();
@@ -111,7 +110,6 @@ class ExpenseRecordTest {
     void testGetPaidDate() {
 
         //GIVEN
-        ExpenseRecord expenseRecord = new ExpenseRecord();
         LocalDate localDate = LocalDate.now();
         expenseRecord.setPaidDate(localDate);
         //WHEN
@@ -125,7 +123,6 @@ class ExpenseRecordTest {
     void testGetExpenseType() {
 
         //GIVEN
-        ExpenseRecord expenseRecord = new ExpenseRecord();
         expenseRecord.setExpenseType(expenseTypeE.Bill);
         //WHEN
         expenseTypeE actualExpenseType = expenseRecord.getExpenseType();
@@ -134,4 +131,93 @@ class ExpenseRecordTest {
 
     }
 
+    @Test
+    void testGetpaymentType() {
+
+        //GIVEN
+        expenseRecord.setpaymentType(paymentTypeE.paidByCash);
+        //WHEN
+        paymentTypeE actualPaymentType = expenseRecord.getPaymentType();
+        //THEN
+        assertEquals(paymentTypeE.paidByCash, actualPaymentType);
+
+    }
+
+    @Test
+    void testGetRepetitionInterval() {
+
+        //GIVEN
+        expenseRecord.setRepetitionInterval(repetitionIntervalE.Once);
+        //WHEN
+        repetitionIntervalE actualRepetitionInterval = expenseRecord.getRepetitionInterval();
+        //THEN
+        assertEquals(repetitionIntervalE.Once, actualRepetitionInterval);
+
+    }
+
+    @Test
+    void testGetRetailerName() {
+
+        //GIVEN
+        expenseRecord.setRetailerName("Retailer_X_");
+        //WHEN
+        String actualRetailerName = expenseRecord.getRetailerName();
+        //THEN
+        assertEquals("Retailer_X_", actualRetailerName);
+
+    }
+
+    @Test
+    void testGetRetailerLocation() {
+
+        //GIVEN
+        expenseRecord.setRetailerLocation("Retailer_Loc_X_");
+        //WHEN
+        String actualRetailerLocation = expenseRecord.getRetailerLocation();
+        //THEN
+        assertEquals("Retailer_Loc_X_", actualRetailerLocation);
+
+    }
+
+    @Test
+    void testGetOperationDate() {
+
+        //GIVEN
+        LocalDate localDate = LocalDate.now();
+        expenseRecord.setOperationDate(localDate);
+        //WHEN
+        LocalDate actualOperationDate = expenseRecord.getOperationDate();
+        //THEN
+        assertEquals(localDate, actualOperationDate);
+
+    }
+
+    @Test
+    void testGetOtherDetails() {
+
+        //GIVEN
+        expenseRecord.setOtherDetails("A_Comment");
+        //WHEN
+        String actualOtherDetails = expenseRecord.getOtherDetails();
+        //THEN
+        assertEquals("A_Comment", actualOtherDetails);
+
+    }
+
+    @Test
+    void testGetRecord() {
+
+        //GIVEN
+        LocalDate localDate = LocalDate.now();
+        Object[] data = {23d, true,localDate, expenseTypeE.Bill, paymentTypeE.paidByCash, repetitionIntervalE.Once, "Retailer_X_", "Retailer_Loc_X_", localDate, "A_Comment"};
+        expenseRecord.setRecord(data);
+        //WHEN
+        Object[] actualRecord = expenseRecord.getRecord();
+        //THEN
+        assertEquals(data, actualRecord);
+
+    }
+
+
 }
+
