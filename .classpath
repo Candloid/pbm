@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="jgoodies-common-1.8.0.jar" sourcepath="jgoodies-common-1.8.0-sources.jar"/>
 	<classpathentry kind="lib" path="jgoodies-forms-1.8.0.jar" sourcepath="jgoodies-forms-1.8.0-sources.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
+	<classpathentry kind="lib" path="C:/Users/Qandeel/git/pbm/src/com/concordia/personalBudgetManager/sqljdbc4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

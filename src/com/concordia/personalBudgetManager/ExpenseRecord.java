@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class ExpenseRecord {
 	public enum expenseTypeE{Purchase,Bill,Composite};
 	public enum paymentTypeE{paidByCash,paidByDebit,dueByCredit};
-	public enum repetitionIntervalE{Once,Day,Bidaily,Weekly,Biweekly,Monthly,Yearly};
+	public enum repetitionIntervalE{Once,Daily,Bidaily,Weekly,Biweekly,Monthly,Yearly};
 	public enum recordFieldE					{amount,	paid,	paidDate,		expenseType,			paymentType,				repetitionInterval,		retailerName,	retailerLocation,	operationDate,		otherDetails};
 	public static String[] recordFieldStrings =	{"Amount",	"Paid",	"Paid Date",	"Expense Type",			"Payment Type",				"Repetition Interval",	"Retailer Name","Retailer Location","Operation Date",	"Other Details"};
 	

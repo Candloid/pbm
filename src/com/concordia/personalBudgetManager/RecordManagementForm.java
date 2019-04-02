@@ -3,8 +3,12 @@ package com.concordia.personalBudgetManager;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Date;
 
 import javax.swing.DefaultComboBoxModel;
@@ -63,6 +67,7 @@ public class RecordManagementForm {
 	private JLabel l1, l2, l3, l4, l5, l6, l7, l8, l9;
 	private JButton mainInsert, mainDelete, mainSave, mainDiscard;
 	private JButton subInsert, subSave, subDelete, subDiscard;
+	private JButton btnPullFromDb, btnPushToDb;
 	
 	// Create the application.
 	public RecordManagementForm(User parsedUser) {
@@ -74,6 +79,7 @@ public class RecordManagementForm {
 		//frame.getContentPane().setLayout(null);
 		frame.setVisible(true);
 		amountText.setText("0.0");
+		
 		if(currentUser.records.size()!=0) {
 			mainTable.setRowSelectionInterval(0, 0);			
 		} else {			
@@ -105,6 +111,24 @@ public class RecordManagementForm {
 		
 		p = frame.getContentPane();
 		p.setLayout(null);
+		
+		btnPushToDb = new JButton("^ Push to DB ^");
+		btnPushToDb.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				syncPush();		// PUSH TO DB
+			}
+		});
+		btnPushToDb.setBounds(500, 5, 150, 25);
+		frame.getContentPane().add(btnPushToDb);
+
+		btnPullFromDb = new JButton("v Pull from DB v");
+		btnPullFromDb.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				syncPull();		// PULL FROM DB
+			}
+		});
+		btnPullFromDb.setBounds(661, 5, 150, 25);
+		frame.getContentPane().add(btnPullFromDb);
 		
 		l1 = new JLabel("Expense ID");
 		l1.setBounds(25, 32, 78, 25);
@@ -246,7 +270,7 @@ public class RecordManagementForm {
 				if(idMax-- < 0)
 					idMax = 0;
 				idRange.setMaximum(idMax);
-				System.out.println("DEBUG - INFO: IdSpinner Range [" + idRange.getMinimum().toString() + ":" + idRange.getMaximum().toString()+ "]");
+				System.out.println("DEBUG: INFO - IdSpinner Range [" + idRange.getMinimum().toString() + ":" + idRange.getMaximum().toString()+ "]");
 				
 				if(currentUser.records.size() > 0) {
 					int mainAt = mainTable.getSelectedRow();
@@ -461,7 +485,7 @@ public class RecordManagementForm {
 		//Vlad - checkbox to show and hide paid expenses
 		showMainPaid = new JCheckBox("Show paid only");
 		showMainPaid.setSelected(false);
-		showMainPaid.setBounds(343, 7, 200, 23);
+		showMainPaid.setBounds(343, 7, 150, 23);
 		showMainPaid.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				TableRowSorter<TableModel> sorter = new TableRowSorter<>(mainTable.getModel());
@@ -608,5 +632,127 @@ public class RecordManagementForm {
 		mainModel.setValueAt(currentUser.records.get(mainAt).getAmount(), mainAt, recordFieldE.amount.ordinal());
 		mainModel.setValueAt(currentUser.records.get(mainAt).getPaid(), mainAt, recordFieldE.paid.ordinal());
 		//amountText.setText(Double.toString(currentUser.records.get(mainAt).getAmount()));
+	}
+	
+	private void syncPull() {
+		Object[] options = {"Confirm Sync","Return to current records"};
+		int confirmation = JOptionPane.showOptionDialog(frame, "Are you sure you want to revert to database records", "New Start?", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+		if(confirmation == 0) {
+			try {
+				final DatabaseManager db = new DatabaseManager();
+				Connection con = db.sqlConnect();
+				//String mainQuery = "SELECT [recordId],[amount],[paid],[paidDate],[expenseType],[paymentType],[repetitionInterval],[retailerName],[retailerLocation],[operationDate],[otherDetails] FROM [dbo].[expensesRecords]";
+				String mainQuery = "SELECT * FROM [dbo].[mainRecords];";
+				ResultSet mRs = db.sqlRequest(con, mainQuery);
+				// Remove the old records
+				int recordsSize = currentUser.records.size();
+				for(int i=0; i<recordsSize; i++)
+					currentUser.records.remove(0);
+				// Add the fresh records from the DB
+				while (mRs.next()) {
+					Object mArr[] = getDbRecords(mRs);
+					currentUser.records.add(new ExpenseRecord(mArr));
+					int recId = mRs.getInt(mRs.findColumn("recordId"));
+					System.out.println("DEBUG: INFO - Reading: " + Arrays.deepToString(mArr));
+					if(expenseTypeE.Composite.equals(mArr[ExpenseRecord.recordFieldE.expenseType.ordinal()])) { //Checks if 'composite'
+						String subQuery = "SELECT * FROM [dbo].[subRecords] WHERE [recordId] = " + Integer.toString(recId) + ";";
+						ResultSet sRs = db.sqlRequest(con, subQuery);
+						while (sRs.next()) {
+							Object sArr[] = getDbRecords(sRs);
+							currentUser.records.get(currentUser.records.size()-1).addSubRecord(new ExpenseRecord(sArr));
+						}
+					}
+				}
+				con.close();
+				
+				// Flush old records in the table
+				int modelRecordsCount = mainModel.getRowCount();
+				for(int i=0; i<modelRecordsCount; i++)
+					mainModel.removeRow(0);
+	
+				// Insert fresh records
+				enumerateMain();
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private Object[] getDbRecords(ResultSet rs) throws SQLException{
+		int cols = rs.getMetaData().getColumnCount();
+		Object[] arr = new Object[cols];
+		arr[ExpenseRecord.recordFieldE.amount.ordinal()]			= rs.getDouble(rs.findColumn(ExpenseRecord.recordFieldE.amount.toString()));
+		arr[ExpenseRecord.recordFieldE.paid.ordinal()]				= rs.getBoolean(rs.findColumn(ExpenseRecord.recordFieldE.paid.toString()));
+		arr[ExpenseRecord.recordFieldE.paidDate.ordinal()]			= (rs.getDate(rs.findColumn(ExpenseRecord.recordFieldE.paidDate.toString()))).toLocalDate();
+		arr[ExpenseRecord.recordFieldE.expenseType.ordinal()]		= expenseTypeE.values()[rs.getInt(rs.findColumn(ExpenseRecord.recordFieldE.expenseType.toString()))];
+		arr[ExpenseRecord.recordFieldE.paymentType.ordinal()]		= paymentTypeE.values()[rs.getInt(rs.findColumn(ExpenseRecord.recordFieldE.paymentType.toString()))];
+		arr[ExpenseRecord.recordFieldE.repetitionInterval.ordinal()]= repetitionIntervalE.values()[rs.getInt(rs.findColumn(ExpenseRecord.recordFieldE.repetitionInterval.toString()))];
+		arr[ExpenseRecord.recordFieldE.retailerName.ordinal()]		= rs.getString(rs.findColumn(ExpenseRecord.recordFieldE.retailerName.toString()));
+		arr[ExpenseRecord.recordFieldE.retailerLocation.ordinal()]	= rs.getString(rs.findColumn(ExpenseRecord.recordFieldE.retailerLocation.toString()));
+		arr[ExpenseRecord.recordFieldE.operationDate.ordinal()]		= (rs.getDate(rs.findColumn(ExpenseRecord.recordFieldE.operationDate.toString()))).toLocalDate();
+		arr[ExpenseRecord.recordFieldE.otherDetails.ordinal()]		= rs.getString(rs.findColumn(ExpenseRecord.recordFieldE.otherDetails.toString()));
+		return arr;
+	}
+	
+	private void syncPush() {
+		Object[] options = {"Confirm Sync","Return to current records"};
+		int confirmation = JOptionPane.showOptionDialog(frame, "Are you sure you want to overwrite database records", "Save changes to DB?", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+		if(confirmation == 0) {
+			try {
+				final DatabaseManager db = new DatabaseManager();
+				Connection con = db.sqlConnect();
+				//String mainQuery = "SELECT [recordId],[amount],[paid],[paidDate],[expenseType],[paymentType],[repetitionInterval],[retailerName],[retailerLocation],[operationDate],[otherDetails] FROM [dbo].[expensesRecords]";
+				// Remove all main and sub records from database
+				db.sqlOrder(con, "DELETE FROM [dbo].[mainRecords];");
+				db.sqlOrder(con, "DELETE FROM [dbo].[subRecords];");
+				for (int recordId=0; recordId<currentUser.records.size(); recordId++) {
+					String mainQuery = mainWrite(recordId+1, currentUser.records.get(recordId));
+					db.sqlOrder(con, mainQuery); // Do the writing query
+					if(expenseTypeE.Composite.equals(currentUser.records.get(recordId).getExpenseType())) { //Checks if 'composite'
+						for(int subRecId=0; subRecId<currentUser.records.get(recordId).getSubRecordsCount(); subRecId++) {
+							String subQuery = subWrite(recordId+1, subRecId+1, currentUser.records.get(recordId).getSubRecord(subRecId));
+							db.sqlOrder(con, subQuery);
+						}
+					}
+				}
+				con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private String mainWrite(int recordId, ExpenseRecord recordNow) {
+		return "INSERT INTO [dbo].[mainRecords] ([recordId],[amount],[paid],[paidDate],[expenseType],[paymentType],[repetitionInterval],[retailerName],[retailerLocation],[operationDate],[otherDetails]) VALUES ('"
+				+ Integer.toString(recordId) + "','"
+				+ Double.toString(recordNow.getAmount()) + "','"
+				+ Boolean.toString(recordNow.getPaid()) + "','"
+				+ (recordNow.getPaidDate()).toString() + "','"
+				+ Integer.toString(recordNow.getExpenseType().ordinal()) + "','"
+				+ Integer.toString(recordNow.getPaymentType().ordinal()) + "','"
+				+ Integer.toString(recordNow.getRepetitionInterval().ordinal()) + "','"
+				+ recordNow.getRetailerName() + "','"
+				+ recordNow.getRetailerLocation() + "','"
+				+ (recordNow.getOperationDate()).toString() + "','"
+				+ recordNow.getOtherDetails() + "')";
+	}
+	
+	private String subWrite(double subId, int mainId, ExpenseRecord recordNow) {
+		return "INSERT INTO [dbo].[subRecords] ([recordId],[subRecordId],[amount],[paid],[paidDate],[expenseType],[paymentType],[repetitionInterval],[retailerName],[retailerLocation],[operationDate],[otherDetails]) VALUES ('"
+				+ Integer.toString(mainId) + "','"
+				+ Double.toString(mainId + subId/100) + "','"
+				+ Double.toString(recordNow.getAmount()) + "','"
+				+ Boolean.toString(recordNow.getPaid()) + "','"
+				+ (recordNow.getPaidDate()).toString() + "','"
+				+ Integer.toString(recordNow.getExpenseType().ordinal()) + "','"
+				+ Integer.toString(recordNow.getPaymentType().ordinal()) + "','"
+				+ Integer.toString(recordNow.getRepetitionInterval().ordinal()) + "','"
+				+ recordNow.getRetailerName() + "','"
+				+ recordNow.getRetailerLocation() + "','"
+				+ (recordNow.getOperationDate()).toString() + "','"
+				+ recordNow.getOtherDetails() + "')";
 	}
 }

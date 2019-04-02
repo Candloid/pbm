@@ -2,19 +2,24 @@ package com.concordia.personalBudgetManager;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-
 import com.concordia.personalBudgetManager.ExpenseRecord.expenseTypeE;
 import com.concordia.personalBudgetManager.ExpenseRecord.paymentTypeE;
 import com.concordia.personalBudgetManager.ExpenseRecord.repetitionIntervalE;
 
 public class User {
+	final int OFFSET = 2;
 	String name="Guest";
 	ArrayList<ExpenseRecord> records = new ArrayList<ExpenseRecord>();
 	
 	public User(String name){loadInitialRecords(); setName(name);}
+	/*
+	public User(String name){
+		sync();
+		setName(name);}
+	*/
 	public String getName() {return name;}
 	public void setName(String name) {this.name = name;}
-
+	
 	private void loadInitialRecords() { //Vlad - loading expense records - uncomment and change after merge with 2-level version
 		ExpenseRecord [] preloadedRecords = new ExpenseRecord [6];
 		for (int i = 0; i < preloadedRecords.length; i++) {
