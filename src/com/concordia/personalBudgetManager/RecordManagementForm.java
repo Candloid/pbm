@@ -717,7 +717,7 @@ public class RecordManagementForm {
 					db.sqlOrder(con, mainQuery); // Do the writing query
 					if(expenseTypeE.Composite.equals(currentUser.records.get(recordId).getExpenseType())) { //Checks if 'composite'
 						for(int subRecId=0; subRecId<currentUser.records.get(recordId).getSubRecordsCount(); subRecId++) {
-							String subQuery = subWrite(recordId+1, subRecId+1, currentUser.records.get(recordId).getSubRecord(subRecId));
+							String subQuery = subWrite(subRecId+1, recordId+1, currentUser.records.get(recordId).getSubRecord(subRecId));
 							db.sqlOrder(con, subQuery);
 						}
 					}
