@@ -483,14 +483,14 @@ public class RecordManagementForm {
 		frame.getContentPane().add(subPane);
 		
 		//Vlad - checkbox to show and hide paid expenses
-		showMainPaid = new JCheckBox("Show paid only");
+		showMainPaid = new JCheckBox("Hide paid");
 		showMainPaid.setSelected(false);
 		showMainPaid.setBounds(343, 7, 150, 23);
 		showMainPaid.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				TableRowSorter<TableModel> sorter = new TableRowSorter<>(mainTable.getModel());
 				if (showMainPaid.isSelected()) {
-					sorter.setRowFilter(RowFilter.regexFilter("true"));
+					sorter.setRowFilter(RowFilter.regexFilter("false"));
 				} else {
 					sorter.setRowFilter(RowFilter.regexFilter("[truefalse]"));
 				}
@@ -499,14 +499,14 @@ public class RecordManagementForm {
 		});
 		frame.getContentPane().add(showMainPaid);
 		
-		showSubPaid = new JCheckBox("Show sub paid only");
+		showSubPaid = new JCheckBox("Hide sub paid");
 		showSubPaid.setSelected(false);
 		showSubPaid.setBounds(343, 335, 150, 23);
 		showSubPaid.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				TableRowSorter<TableModel> sorter = new TableRowSorter<>(subTable.getModel());
 				if (showSubPaid.isSelected()) {
-					sorter.setRowFilter(RowFilter.regexFilter("true"));
+					sorter.setRowFilter(RowFilter.regexFilter("false"));
 				} else {
 					sorter.setRowFilter(RowFilter.regexFilter("[truefalse]"));
 				}
