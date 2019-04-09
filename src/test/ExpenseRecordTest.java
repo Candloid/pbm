@@ -209,13 +209,33 @@ class ExpenseRecordTest {
 
         //GIVEN
         LocalDate localDate = LocalDate.now();
-        Object[] data = {23d, true,localDate, expenseTypeE.Bill, paymentTypeE.paidByCash, repetitionIntervalE.Once, "Retailer_X_", "Retailer_Loc_X_", localDate, "A_Comment"};
+        Object[] data = {23d, true, localDate, expenseTypeE.Bill, paymentTypeE.paidByCash, repetitionIntervalE.Once, "Retailer_X_", "Retailer_Loc_X_", localDate, "A_Comment"};
         expenseRecord.setRecord(data);
         //WHEN
         Object[] actualRecord = expenseRecord.getRecord();
         //THEN
         assertEquals(data, actualRecord);
+    }
 
+    @Test
+    void testExpenseRecord() {
+
+        //GIVEN
+        LocalDate localDate = LocalDate.now();
+        Object[] data = {23d, true, localDate, expenseTypeE.Bill, paymentTypeE.paidByCash, repetitionIntervalE.Once, "Retailer_X_", "Retailer_Loc_X_", localDate, "A_Comment"};
+        expenseRecord.insertSubRecord(0, data);
+        //THEN
+        assertEquals(expenseTypeE.Bill, expenseRecord.getSubRecord(0).getExpenseType());
+
+    }
+
+    @Test
+    void testGetSubRecordsCount() {
+        //GIVEN
+        Object[] data = {23d, true, LocalDate.now(), expenseTypeE.Bill, paymentTypeE.paidByCash, repetitionIntervalE.Once, "Retailer_X_", "Retailer_Loc_X_", LocalDate.now(), "A_Comment"};
+        expenseRecord.insertSubRecord(0, data);
+        //THEN
+        assertEquals(1, expenseRecord.getSubRecordsCount());
     }
 
 
