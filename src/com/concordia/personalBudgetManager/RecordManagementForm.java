@@ -75,8 +75,7 @@ public class RecordManagementForm {
 		parsedUser = null;
 		this.setLookAndFeel("Nimbus");
 		initialize();
-		enumerateMain();
-		//frame.getContentPane().setLayout(null);
+		syncPull(false);
 		frame.setVisible(true);
 		amountText.setText("0.0");
 		
@@ -124,7 +123,7 @@ public class RecordManagementForm {
 		btnPullFromDb = new JButton("v Pull from DB v");
 		btnPullFromDb.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				syncPull();		// PULL FROM DB
+				syncPull(true);		// PULL FROM DB
 			}
 		});
 		btnPullFromDb.setBounds(661, 5, 150, 25);
@@ -634,9 +633,15 @@ public class RecordManagementForm {
 		//amountText.setText(Double.toString(currentUser.records.get(mainAt).getAmount()));
 	}
 	
-	private void syncPull() {
-		Object[] options = {"Confirm Sync","Return to current records"};
-		int confirmation = JOptionPane.showOptionDialog(frame, "Are you sure you want to revert to database records", "New Start?", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+	private void syncPull(boolean confirm) {
+		int confirmation;
+		if(confirm) {
+			Object[] options = {"Confirm Sync","Return to current records"};
+			confirmation = JOptionPane.showOptionDialog(frame, "Are you sure you want to revert to database records", "New Start?", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+		} else {
+			confirmation = 0;
+		}
+
 		if(confirmation == 0) {
 			try {
 				final DatabaseManager db = new DatabaseManager();
