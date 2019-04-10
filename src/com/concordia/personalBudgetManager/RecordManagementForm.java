@@ -250,13 +250,17 @@ public class RecordManagementForm {
 		frame.getContentPane().add(mainInsert);
 		mainInsert.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				//check if the control field values are within boundaries
+				if (!checkRecord()) 
+					return;
+				
 				idRange.setMaximum(idMax++);
 				System.out.println("DEBUG: INFO - IdSpinner Range [" + idRange.getMinimum().toString() + ":" + idRange.getMaximum().toString()+ "]");
 				enableMain();
 				currentRecord = packRecord(true); // discard sub records
 				currentUser.records.add(currentRecord);
 				mainModel.addRow(currentRecord.getRecord());
-				//idSpinner.setValue(idRange.getMaximum());
+				//idSpinner.setValue(idRange.getMaximum());	
 			}
 		});
 		
@@ -274,7 +278,7 @@ public class RecordManagementForm {
 				if(currentUser.records.size() > 0) {
 					int mainAt = mainTable.getSelectedRow();
 					if(mainTable.getSelectedColumnCount()!=0) {
-						Object[] options = {"Confirm Deletion","Keep Records"};
+						Object[] options = {"Confirm Deletion","Keep Record"};
 						int confirmation = JOptionPane.showOptionDialog(frame, "Are you sure you want to delete record [" + Integer.toString(mainAt) + "]", "Discard Changes?", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
 						if(confirmation == 0) {
 							System.out.println("Processing Id: " + mainAt);
@@ -303,6 +307,8 @@ public class RecordManagementForm {
 		frame.getContentPane().add(mainSave);
 		mainSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (!checkRecord())
+					return;
 				currentRecordId = (int) idSpinner.getValue();
 				currentRecord = packRecord(false);
 
@@ -338,6 +344,9 @@ public class RecordManagementForm {
 		subInsert = new JButton("Insert Sub Record");
 		subInsert.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (!checkRecord())
+					return;
+				
 				currentRecordId = (int) idSpinner.getValue();
 				currentRecord = currentUser.records.get(currentRecordId);
 				packedRecord = packRecord(true);
@@ -356,6 +365,8 @@ public class RecordManagementForm {
 		subSave = new JButton("Apply Sub Changes");
 		subSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (!checkRecord())
+					return;
 				int subAt = subTable.getSelectedRow();
 				int mainAt = (int) idSpinner.getValue();
 				if(subAt != -1) {
@@ -383,23 +394,28 @@ public class RecordManagementForm {
 		subDelete = new JButton("Delete Sub Record");
 		subDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int subAt = subTable.getSelectedRow();
-				int mainAt = (int) idSpinner.getValue();
-				if(subAt != -1) {
-					currentUser.records.get(mainAt).removeSubRecord(subAt);
-					subModel.removeRow(subAt);
-					if(currentUser.records.get(mainAt).getSubRecordsCount() == 0) {
-						disableSub();
+				//confirmation dialogue to delete record
+				Object[] options = {"Confirm Deletion","Keep Record"};
+				int confirmation = JOptionPane.showOptionDialog(frame, "Are you sure you want to delete this record?", "Discard Changes?", JOptionPane.PLAIN_MESSAGE, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+				if (confirmation == 0) {
+					int subAt = subTable.getSelectedRow();
+					int mainAt = (int) idSpinner.getValue();
+					if(subAt != -1) {
+						currentUser.records.get(mainAt).removeSubRecord(subAt);
+						subModel.removeRow(subAt);
+						if(currentUser.records.get(mainAt).getSubRecordsCount() == 0) {
+							disableSub();
+						} else {
+							// Highlights next row and update fields accordingly
+							subAt = subAt == 0 ? 1 : subAt;
+							subTable.setRowSelectionInterval(subAt-1, subAt-1);
+							updateFields(currentUser.records.get(mainAt).getSubRecord(subAt-1), true);
+						}
 					} else {
-						// Highlights next row and update fields accordingly
-						subAt = subAt == 0 ? 1 : subAt;
-						subTable.setRowSelectionInterval(subAt-1, subAt-1);
-						updateFields(currentUser.records.get(mainAt).getSubRecord(subAt-1), true);
+						JOptionPane.showMessageDialog(frame, "Please select sub records to delete!");
 					}
-				} else {
-					JOptionPane.showMessageDialog(frame, "Please select sub records to delete!");
+					updateMainModel(mainAt);
 				}
-				updateMainModel(mainAt);
 			}
 		});
 		subDelete.setEnabled(false);
@@ -759,5 +775,29 @@ public class RecordManagementForm {
 				+ recordNow.getRetailerLocation() + "','"
 				+ (recordNow.getOperationDate()).toString() + "','"
 				+ recordNow.getOtherDetails() + "')";
+	}
+	
+	private boolean checkRecord() {
+		//Vlad:
+		//check if the amount is above zero
+		try {
+			double amountVal = Double.parseDouble(amountText.getText());
+			if (amountVal < 0) {
+				throw (new NumberFormatException());
+			}
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(frame, "Amount has to be a positive number");
+			return false;
+		}
+
+		//check if the record paid status is true for debit or cash expense type
+		if (((paymentTypeE)paymentTypeSelection.getSelectedItem() == paymentTypeE.paidByCash || 
+				(paymentTypeE)paymentTypeSelection.getSelectedItem() == paymentTypeE.paidByDebit) &&
+				!paidTick.isSelected() && 
+				(expenseTypeE)expenseTypeSelection.getSelectedItem() != expenseTypeE.Composite) {
+			JOptionPane.showMessageDialog(frame, "Check \"Paid\" for an expense or bill paid by cash or debit.");
+			return false;
+		}
+		return true;
 	}
 }
