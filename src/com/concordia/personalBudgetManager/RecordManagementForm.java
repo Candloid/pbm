@@ -171,7 +171,7 @@ public class RecordManagementForm {
 		frame.getContentPane().add(operationDateSpinner);
 		
 		paidDateSpinner = new JSpinner(new SpinnerDateModel());
-		paidDateSpinner.setEnabled(false);
+		paidDateSpinner.setEnabled(true);
 		paidDateSpinner.setEditor(new JSpinner.DateEditor(paidDateSpinner, "yyyy-MM-dd HH:mm:ss"));
 		paidDateSpinner.setBounds(165, 68, 150, 25);
 		frame.getContentPane().add(paidDateSpinner);
@@ -331,7 +331,7 @@ public class RecordManagementForm {
 		frame.getContentPane().add(paidTick);
 		paidTick.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				paidDateSpinner.setEnabled(paidTick.isSelected());
+				//paidDateSpinner.setEnabled(paidTick.isSelected());
 			}
 		});
 		
